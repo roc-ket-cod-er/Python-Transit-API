@@ -12,7 +12,7 @@ async def main():
     await asyncio.sleep(0.4)
     await print_slowly("This program will help you find the best route between two locations.")
     await asyncio.sleep(1)
-    clear()
+    await clear()
     await print_slowly("I want to go from (", end="")
     await print_slowly("latitude, longitu", delay=0.01, end="")
     await print_slowly("de): ", end="")

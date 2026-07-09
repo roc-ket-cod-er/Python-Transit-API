@@ -14,12 +14,13 @@ NORMAL = 'normal'
 
 BOLD = '\033[1;37m'
 
-def clear(after=0):
-    asyncio.sleep(after)
+async def clear(screen, after=0):
+    await asyncio.sleep(after)
     if IS_WINDOWS:
         os.system("cls")
     else:
         os.system("clear")
+    screen = ""
 
 def red(*strings, end=''):
     tbr = RED
@@ -71,8 +72,10 @@ def bold(*strings, end=''):
     tbr += end
     return tbr
 
-async def print_slowly(*all_to_print, delay=0.03, end='\n'):
+async def print_slowly(screen, *all_to_print, delay=0.03, end='\n'):
     for to_print in all_to_print:
+        to_print = str(to_print)
+        screen += to_print
         escape_detected = False
         for char in to_print:
             if char == '\033':
@@ -90,3 +93,7 @@ async def print_slowly(*all_to_print, delay=0.03, end='\n'):
                 continue
             await asyncio.sleep(delay)
         print(end=end)
+    return screen
+
+async def sprint(screen, *all_to_print, end='\n'):
+    return await print_slowly(screen, *all_to_print, end=end)
