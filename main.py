@@ -31,10 +31,10 @@ async def get_start_coord():
 async def get_end_coord(start_coord, error=False):
     if not error:
         s.delete_last_lines(2)
-        s.print(f"I want to go from (latitude, longitude): {blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}')}", end="")
+        s.print(f"I want to go from (latitude, longitude): {bold(blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}'))}", end="")
     else:
         s.delete_last_lines(1)
-        await s.type(f"I want to go from (latitude, longitude): {blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}')}", end="", delay=0.01)
+        await s.type(f"I want to go from (latitude, longitude): {bold(blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}'))}", end="", delay=0.01)
     await s.type(" (latitude, longitude) to ", end="")
 
     try:
@@ -56,17 +56,16 @@ async def get_end_coord(start_coord, error=False):
         return await get_end_coord(start_coord, error=True)
 
 async def main():
+    s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
-    await s.type(bold("Welcome to the Transit API!\n"))
     await asyncio.sleep(0.4)
     await s.type("This program will help you find the best route between two locations.\n")
-    await s.scroll(2)
 
     start_coord = await get_start_coord()
     end_coord = await get_end_coord(start_coord)
 
     await s.type(
-        f"\nCalculating the best route between {blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}')} and {blue(f'{end_coord[0][0]} {end_coord[0][1]}, {end_coord[1][0]} {end_coord[1][1]}')} ...\n\n",
+        f"\nCalculating the best route between {bold(blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}'))} and {bold(blue(f'{end_coord[0][0]} {end_coord[0][1]}, {end_coord[1][0]} {end_coord[1][1]}'))} ...\n\n",
          delay=0.01
     )
     await s.scroll(s.nlines-8, time_per_row=0.05)

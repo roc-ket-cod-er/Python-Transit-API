@@ -6,7 +6,7 @@ from aioconsole import ainput
 #----------- Text Colors -----------
 NORMAL_TEXT = "\033[0m"
 
-RED = '\033[31m'
+RED = '\033[0;31m'
 BLUE = '\033[0;34m'	
 GREEN = '\033[0;32m'
 YELLOW = '\033[0;33m'
@@ -14,8 +14,9 @@ NORMAL = 'normal'
 
 BOLD = '\033[1;37m'
 
-def red(*strings, end=''):
+def red(*strings, end='', bold=False):
     tbr = RED
+    if bold: tbr[2] = 1
     for string in strings:
         tbr += str(string)
         if string != strings[-1]:
@@ -24,8 +25,9 @@ def red(*strings, end=''):
     tbr += end
     return tbr
 
-def green(*strings, end=''):
+def green(*strings, end='', bold=False):
     tbr = GREEN
+    if bold: tbr[2] = 1
     for string in strings:
         tbr += str(string)
         if string != strings[-1]:
@@ -34,8 +36,9 @@ def green(*strings, end=''):
     tbr += end
     return tbr
 
-def blue(*strings, end=''):
+def blue(*strings, end='', bold=False):
     tbr = BLUE
+    if bold: tbr[2] = 1
     for string in strings:
         tbr += str(string)
         if string != strings[-1]:
@@ -44,8 +47,9 @@ def blue(*strings, end=''):
     tbr += end
     return tbr
 
-def yellow(*strings, end=''):
+def yellow(*strings, end='', bold=False):
     tbr = YELLOW
+    if bold: tbr[2] = 1
     for string in strings:
         tbr += str(string)
         if string != strings[-1]:
@@ -57,66 +61,28 @@ def yellow(*strings, end=''):
 def bold(*strings, end=''):
     tbr = BOLD
     for string in strings:
-        tbr += str(string)
-        if string != strings[-1]:
-            tbr += ' '
+        if string[:4] != '\033[0;':
+            tbr += str(string)
+            if string != strings[-1]:
+                tbr += ' '
+        else:
+            tbr += NORMAL_TEXT
+            tbr += '\033[1;'
+            tbr += string[4:]
+            if string != strings[-1]:
+                tbr += ' '
     tbr += NORMAL_TEXT
     tbr += end
     return tbr
 
-"""async def print_slowly(screen, *all_to_print, delay=0.03, end='\n'):
-    for to_print in all_to_print:
-        to_print = str(to_print)
-        screen += to_print
-        escape_detected = False
-        for char in to_print:
-            if char == '\033':
-                escape_detected=True
 
-            if escape_detected:
-                if char != 'm':
-                    print(char, end='', flush=True)
-                    continue
-                else:
-                    escape_detected=False
-
-            print(char, end='', flush=True)
-            if char == '\n':
-                continue
-            await asyncio.sleep(delay)
-        print(end=end)
-    return screen
-
-def sprint(screen, *all_to_print, end='\n'):
-    for to_print in all_to_print:
-        to_print = str(to_print)
-        screen += to_print
-        escape_detected = False
-        for char in to_print:
-            if char == '\033':
-                escape_detected=True
-
-            if escape_detected:
-                if char != 'm':
-                    print(char, end='', flush=True)
-                    continue
-                else:
-                    escape_detected=False
-
-            print(char, end='', flush=True)
-            if char == '\n':
-                continue
-        print(end=end)
-    return screen
-
-async def sinput(screen):
-    return screen + await ainput() """
 
 
 class Screen:
     def __init__(self):
         self.screen = ''
         self.IS_WINDOWS = True if os.name == 'nt' else False
+        self.pinned_text = ''
     
     def clear(self):
         if self.IS_WINDOWS:
@@ -124,6 +90,7 @@ class Screen:
         else:
             os.system("clear")
         self.screen = ''
+        print(self.pinned_text, flush=True)
 
     def print(self, *all_to_print, end='\n'):
         for to_print in all_to_print:
