@@ -60,25 +60,28 @@ async def get_end_coord(start_coord: list, error: bool =False) -> list:
 async def main() -> int:
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
-    await asyncio.sleep(0.4)
-    await s.type("This program will help you find the best route between two locations.\n")
+    await s.type(">>>")
+    inp = await s.input()
 
-    start_coord = await get_start_coord()
+    if inp == "nav":
+        await s.type("This program will help you find the best route between two locations.\n")
 
-    if start_coord == 'update grt gtfs':
+        start_coord = await get_start_coord()
+
+        end_coord = await get_end_coord(start_coord)
+
+        await s.type(
+            f"\nCalculating the best route between {bold(blue(f'{pretty_coord(start_coord)}'))} and {bold(blue(f'{pretty_coord(end_coord)}'))} ...\n\n",
+            delay=0.01
+        )
+        await s.scroll(s.nlines-8, time_per_row=0.05)
+        await s.scroll(4)
+    elif inp == 'update':
         print("updating gtfs for grt")
-        update("GRT")
+        update("GRT&&GO")
         return await main()
-
-    end_coord = await get_end_coord(start_coord)
-
-    await s.type(
-        f"\nCalculating the best route between {bold(blue(f'{pretty_coord(start_coord)}'))} and {bold(blue(f'{pretty_coord(end_coord)}'))} ...\n\n",
-         delay=0.01
-    )
-    await s.scroll(s.nlines-8, time_per_row=0.05)
-    await s.scroll(4)
-
+    elif inp == 'walking speed':
+        pass
     return 0
 
 if __name__ == "__main__":
