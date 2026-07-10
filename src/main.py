@@ -60,7 +60,7 @@ async def get_end_coord(start_coord: list, error: bool =False) -> list:
 async def main() -> int:
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
-    await s.type(">>>")
+    await s.type(">>>", end='  ')
     inp = await s.input()
 
     if inp == "nav":
