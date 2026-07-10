@@ -32,32 +32,33 @@ async def get_start_coord():
             start_coord[1] = [abs(start_coord[1]), "W"]
         else:
             start_coord[1] = [start_coord[1], "E"]
+        start_coord[2] = ''
         return start_coord
     except (ValueError, IndexError):
-        start_coord = addr_to_loc(start_coord)
+        try:
+            start_coord = addr_to_loc(start_coord)
 
-        if start_coord[0] < 0:
-            start_coord[0] = [abs(start_coord[0]), "S"]
-        else:
-            start_coord[0] = [start_coord[0], "N"]
+            if start_coord[0] < 0:
+                start_coord[0] = [abs(start_coord[0]), "S"]
+            else:
+                start_coord[0] = [start_coord[0], "N"]
 
-        if start_coord[1] < 0:
-            start_coord[1] = [abs(start_coord[1]), "W"]
-        else:
-            start_coord[1] = [start_coord[1], "E"]
-        return start_coord
-
-        await s.type(red("Invalid input. Please enter the coordinates in the format: latitude, longitude\n"), delay=0.01)
-        return await get_start_coord()
+            if start_coord[1] < 0:
+                start_coord[1] = [abs(start_coord[1]), "W"]
+            else:
+                start_coord[1] = [start_coord[1], "E"]
+            return start_coord
+        except AttributeError as e:
+            await s.type(red(f"\nInvalid input. Please try a different address/keyword or enter a coordinate ({e})"), delay=0.01)
+            return await get_start_coord()
 
 async def get_end_coord(start_coord, error=False):
     if not error:
         s.delete_last_lines(2)
-        s.print(f"I want to go from : {bold(blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}'))}", end="")
+        s.print(f"I want to go from: {bold(blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}'))} to ", end="")
     else:
         s.delete_last_lines(1)
-        await s.type(f"I want to go from : {bold(blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}'))}", end="", delay=0.01)
-    await s.type("  to ", end="")
+        await s.type(f"I want to go from: {bold(blue(f'{start_coord[0][0]} {start_coord[0][1]}, {start_coord[1][0]} {start_coord[1][1]}'))} to ", end="", delay=0.01)
 
     try:
         end_coord = await s.input()
@@ -74,21 +75,22 @@ async def get_end_coord(start_coord, error=False):
             end_coord[1] = [end_coord[1], "E"]
         return end_coord
     except (ValueError, IndexError):
-        end_coord = addr_to_loc(end_coord)
-        
-        if end_coord[0] < 0:
-            end_coord[0] = [abs(end_coord[0]), "S"]
-        else:
-            end_coord[0] = [end_coord[0], "N"]
+        try:
+            end_coord = addr_to_loc(end_coord)
+            
+            if end_coord[0] < 0:
+                end_coord[0] = [abs(end_coord[0]), "S"]
+            else:
+                end_coord[0] = [end_coord[0], "N"]
 
-        if end_coord[1] < 0:
-            end_coord[1] = [abs(end_coord[1]), "W"]
-        else:
-            end_coord[1] = [end_coord[1], "E"]
-        return end_coord
-
-        await s.type(red("\nInvalid input. Please enter the coordinates in the format: latitude, longitude"), delay=0.01)
-        return await get_end_coord(start_coord, error=True)
+            if end_coord[1] < 0:
+                end_coord[1] = [abs(end_coord[1]), "W"]
+            else:
+                end_coord[1] = [end_coord[1], "E"]
+            return end_coord
+        except AttributeError as e:
+            await s.type(red(f"\nInvalid input. Please try a different address/keyword or enter a coordinate ({e})"), delay=0.01)
+            return await get_end_coord(start_coord, error=True)
 
 async def main():
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
