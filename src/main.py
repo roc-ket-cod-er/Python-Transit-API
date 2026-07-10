@@ -80,8 +80,9 @@ async def main() -> int:
 
         await s.type(walk_route(start_coord, end_coord))
 
-        await s.type("\n\n Press Enter to close this window.", end="")
+        await s.type("\n\nPress enter to restart", end="")
         await s.input()
+        await main()
     elif inp == 'update':
         print("updating gtfs for grt")
         update("GRT&&GO")
