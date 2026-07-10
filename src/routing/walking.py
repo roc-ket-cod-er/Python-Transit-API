@@ -2,11 +2,9 @@ import requests
 
 WALK_SPEED_KMH = 6
 
-OSRM_URL = "https://router.project-osrm.org"
-
 def get_walking_route(start: tuple[float, float], end: tuple[float, float]):
     url = (
-        f"{OSRM_URL}/route/v1/foot/"
+        f"https://router.project-osrm.org/route/v1/foot/"
         f"{start[1]},{start[0]};"
         f"{end[1]},{end[0]}"
     )
@@ -18,7 +16,6 @@ def get_walking_route(start: tuple[float, float], end: tuple[float, float]):
 
     response = requests.get(url, params=params)
     response.raise_for_status()
-
     return response.json()
 
 def bearing_to_direction(bearing):
