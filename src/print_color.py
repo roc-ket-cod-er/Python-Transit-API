@@ -114,7 +114,7 @@ class Screen:
         self.screen += end
         print(end=end)
 
-    async def type(self, *all_to_print, delay: float = 0.03, end: str = '\n'):
+    async def type(self, *all_to_print, delay: float = 0.02, end: str = '\n'):
         for to_print in all_to_print:
             to_print = str(to_print)
             escape_detected = False
