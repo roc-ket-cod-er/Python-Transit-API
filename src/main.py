@@ -6,6 +6,7 @@ from time import sleep
 from gtfs import update
 from print_color import *
 from geopy.geocoders import Nominatim
+from routing.walking import walk_route
 
 s = Screen()
 geolocator = Nominatim(user_agent="Python Transit API")
@@ -76,6 +77,11 @@ async def main() -> int:
         )
         await s.scroll(s.nlines-8, time_per_row=0.05)
         await s.scroll(4)
+
+        await s.type(walk_route(start_coord, end_coord))
+
+        await s.type("\n\n Press Enter to close this window.", end="")
+        await s.input()
     elif inp == 'update':
         print("updating gtfs for grt")
         update("GRT&&GO")
