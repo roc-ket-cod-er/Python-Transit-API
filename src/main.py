@@ -17,7 +17,7 @@ def addr_to_loc(address: str) -> list:
     except (socket.gaierror, geopy.exc.GeocoderUnavailable):
         return ["NO WIFI"]
     
-def pretty_coord(coord):
+def pretty_coord(coord: list) -> str:
     lat, lon = coord
 
     ns = "N" if lat >= 0 else "S"
@@ -39,7 +39,7 @@ async def get_start_coord():
             await s.type(red(f"\nInvalid input. Please try a different address/keyword or enter a coordinate ({e})"), delay=0.01)
             return await get_start_coord()
 
-async def get_end_coord(start_coord, error=False):
+async def get_end_coord(start_coord: list, error: bool =False) -> list:
     if not error:
         s.delete_last_lines(2)
         s.print(f"I want to go from: {bold(blue(f'{pretty_coord(start_coord)}'))} to ", end="")
@@ -57,7 +57,7 @@ async def get_end_coord(start_coord, error=False):
             await s.type(red(f"\nInvalid input. Please try a different address/keyword or enter a coordinate ({e})"), delay=0.01)
             return await get_end_coord(start_coord, error=True)
 
-async def main():
+async def main() -> int:
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
     await asyncio.sleep(0.4)
@@ -79,4 +79,7 @@ async def main():
     await s.scroll(s.nlines-8, time_per_row=0.05)
     await s.scroll(4)
 
-asyncio.run(main())
+    return 0
+
+if __name__ == "__main__":
+    asyncio.run(main())
