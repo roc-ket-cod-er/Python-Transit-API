@@ -64,7 +64,7 @@ async def main() -> int:
     await s.type(">>>", end='  ')
     inp = await s.input()
 
-    if inp == "nav":
+    if inp.lower() == "nav":
         await s.type("This program will help you find the best route between two locations.\n")
 
         start_coord = await get_start_coord()
@@ -83,12 +83,26 @@ async def main() -> int:
         await s.type("\n\nPress enter to restart", end="")
         await s.input()
         await main()
-    elif inp == 'update':
-        print("updating gtfs for grt")
+    elif inp.lower() == 'update':
+        await s.type(bold(red("WARNING: Will create a GTFS folder in this directory. Press enter to continue, CTRL+C to exit.")), delay=0.01)
+        await s.input()
+        s.print("updating gtfs for grt")
         update("GRT&&GO")
         return await main()
-    elif inp == 'walking speed':
-        pass
+    elif inp.lower() == 'help':
+        await s.type(
+            f"{bold(yellow("-------------------- HELP ------------------"))}\n" +
+            f"A list of every command:\n\n" +
+            f"1. Help: List every command\n" +
+            f"2. Update: Update GTFS Data\n" +
+            bold("3. Nav: Start navigation software\n") +
+            f"Press enter to continue.",
+
+            delay=0.01
+        )
+        await s.input()
+        return await main()
+
     return 0
 
 if __name__ == "__main__":
