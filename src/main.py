@@ -90,7 +90,7 @@ async def main() -> int:
         s.print("updating gtfs for grt")
         update("GRT&&GO")
         return await main()
-    else: #inp.lower() == 'help':
+    elif inp.lower() == 'help':
         await s.type(
             f"{bold(yellow("-------------------- HELP ------------------"))}\n" +
             f"A list of every command:\n\n" +
@@ -99,6 +99,14 @@ async def main() -> int:
             bold("3. Nav: Start navigation software\n") +
             f"Press enter to continue.",
 
+            delay=0.01
+        )
+        await s.input()
+        return await main()
+    
+    else:
+        await s.type(
+            red('Not a recognised command. Try "help" to get a list of commands.\nPress enter to continue.'),
             delay=0.01
         )
         await s.input()
