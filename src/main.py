@@ -78,7 +78,8 @@ async def main() -> int:
         await s.scroll(s.nlines-8, time_per_row=0.05)
         await s.scroll(4)
 
-        await s.type(walk_route(start_coord, end_coord))
+        instructions = walk_route(start_coord, end_coord)
+        await s.type(f"{instructions[0]}\n\nTotal distance: {instructions[1]/1000} km")
 
         await s.type("\n\nPress enter to restart", end="")
         await s.input()
@@ -89,7 +90,7 @@ async def main() -> int:
         s.print("updating gtfs for grt")
         update("GRT&&GO")
         return await main()
-    elif inp.lower() == 'help':
+    else: #inp.lower() == 'help':
         await s.type(
             f"{bold(yellow("-------------------- HELP ------------------"))}\n" +
             f"A list of every command:\n\n" +

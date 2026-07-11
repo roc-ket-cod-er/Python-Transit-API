@@ -75,9 +75,13 @@ def print_route(route):
 def walk_route(start: tuple[float, float], end: tuple[float, float]) -> list:
     route = get_walking_route(start, end)
     tbr = ''
+    dist = 0
+
     for step in route["routes"][0]["legs"][0]["steps"]:
         tbr += format_step(step) + "\n"
-    return tbr
+        dist += step["distance"]
+
+    return (tbr, round(dist))
 
 
 if __name__ == '__main__':
