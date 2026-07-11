@@ -85,8 +85,9 @@ async def main() -> int:
         await s.input()
         await main()
     elif inp.lower() == 'update':
-        await s.type(bold(red("WARNING: Will create a GTFS folder in this directory. Press enter to continue, CTRL+C to exit.")), delay=0.01)
-        await s.input()
+        await s.type(bold(red("WARNING: Will create a GTFS folder in this directory. Continue? (Y/n) ")), end='', delay=0.01)
+        if await s.input() == "n":
+            return await main()
         s.print("updating gtfs for grt")
         update("GRT&&GO")
         return await main()
