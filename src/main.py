@@ -94,12 +94,11 @@ async def main() -> int:
     elif inp.lower() == 'help':
         await s.type(
             f"{bold(yellow("-------------------- HELP ------------------"))}\n" +
-            f"A list of every command:\n\n" +
-            f"1. Help: List every command\n" +
+             "A list of every command:\n\n" +
+             "1. Help: List every command\n" +
             f"2. Update: Update GTFS Data\n" +
             bold("3. Nav: Start navigation software\n") +
-            f"Press enter to continue.",
-
+             "Press enter to continue.",
             delay=0.01
         )
         await s.input()
