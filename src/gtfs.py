@@ -1,9 +1,12 @@
 import ssl
+import csv
+import json
 import requests
 import urllib3
 import zipfile
-from os import remove
 from pathlib import Path
+from os import remove, path
+from geopy.distance import geodesic
 from requests.adapters import HTTPAdapter
 from urllib3.util.ssl_ import create_urllib3_context
 
@@ -17,6 +20,8 @@ URL = {
         "ALL": "https://assets.metrolinx.com/raw/upload/Documents/Metrolinx/Open%20Data/GO-GTFS.zip"
     }
 }
+
+all_stops = []
 
 class WeakDHAdapter(HTTPAdapter):
     """HTTPAdapter that lowers OpenSSL's security level and disables
@@ -36,9 +41,14 @@ class WeakDHAdapter(HTTPAdapter):
         ctx.verify_mode = ssl.CERT_NONE
         kwargs["ssl_context"] = ctx
         return super().proxy_manager_for(*args, **kwargs)
+    
+def find_gtfs_dir():
+    return path.isdir("GTFS")
 
 
-def update(agencies):
+def update(agencies: str) -> None:
+    if agencies.lower() == 'all':
+        agencies = 'GRT&&GO'
     for agency in agencies.split("&&"):
         try:
             keys = list(URL[agency].keys())
@@ -70,8 +80,41 @@ def update(agencies):
 
             remove(local_path + "\\data.zip")
 
+def load_stops():
+    global all_stops
+
+    with open("GTFS/GRT/stops.txt", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+
+        for stop in reader:
+            all_stops.append({
+                "id": stop["stop_id"],
+                "name": stop["stop_name"],
+                "coord": (
+                    float(stop["stop_lat"]),
+                    float(stop["stop_lon"])
+                )
+            })
+
+def stops(coord, amount=20):
+    results = []
+
+    for stop in all_stops:
+        distance = geodesic(coord, stop["coord"]).meters
+
+        results.append(
+            (distance, stop)
+        )
+
+    results.sort(key=lambda x: x[0])
+
+    return results[:amount]
+
 
 if __name__ == '__main__':
     print("\n\n\n")
-    update("GO")
+    print(find_gtfs_dir())
+    load_stops()
+    print(json.dumps(stops((43.505502, -80.522344)), indent=4))
+    print(find_gtfs_dir())
     print("\n\n\n")
