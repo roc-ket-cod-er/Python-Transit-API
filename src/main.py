@@ -3,7 +3,7 @@ import geopy
 import socket
 import asyncio
 from time import sleep
-from gtfs import update
+from gtfs import update, ALL
 from print_color import *
 from geopy.geocoders import Nominatim
 from routing.walking import walk_route
@@ -89,7 +89,7 @@ async def main() -> int:
         if await s.input() == "n":
             return await main()
         s.print("updating gtfs for grt")
-        update("GRT&&GO")
+        update(ALL)
         return await main()
     elif inp.lower() == 'help':
         await s.type(

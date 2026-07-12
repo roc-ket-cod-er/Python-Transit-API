@@ -1,6 +1,7 @@
 import ssl
 import csv
 import json
+import time
 import requests
 import urllib3
 import zipfile
@@ -21,7 +22,11 @@ URL = {
     }
 }
 
+ALL = 'GRT&&GO'
+
 all_stops = []
+stop_trips = {}
+trip_stops = {}
 
 class WeakDHAdapter(HTTPAdapter):
     """HTTPAdapter that lowers OpenSSL's security level and disables
@@ -46,9 +51,7 @@ def find_gtfs_dir():
     return path.isdir("GTFS")
 
 
-def update(agencies: str) -> None:
-    if agencies.lower() == 'all':
-        agencies = 'GRT&&GO'
+def update(agencies: str = ALL) -> None:
     for agency in agencies.split("&&"):
         try:
             keys = list(URL[agency].keys())
@@ -80,30 +83,54 @@ def update(agencies: str) -> None:
 
             remove(local_path + "\\data.zip")
 
-def load_stops():
+def load_stops(agencies=ALL):
     global all_stops
+    for agency in agencies.split("&&"):
+        try:
+            with open(f"GTFS/{agency}/stops.txt", encoding="utf-8-sig") as f:
+                reader = csv.DictReader(f)
 
-    with open("GTFS/GRT/stops.txt", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
+                for stop in reader:
+                    try:
+                        all_stops.append({
+                            "id": stop["stop_id"],
+                            "name": stop["stop_name"],
+                            "coord": (
+                                float(stop["stop_lat"]),
+                                float(stop["stop_lon"])
+                            )
+                        })
+                    except KeyError:
+                        print(json.dumps(stop, indent=2), agency)
+                        time.sleep(1)
+        except FileNotFoundError:
+            update(agency)
 
-        for stop in reader:
-            all_stops.append({
-                "id": stop["stop_id"],
-                "name": stop["stop_name"],
-                "coord": (
-                    float(stop["stop_lat"]),
-                    float(stop["stop_lon"])
-                )
-            })
+def load_trips(agencies=ALL):
+    global stop_trips, trip_stops
+    for agency in agencies.split("&&"):
+        load_stops(agency)
+        stop_trips[agency] = {}
+        trip_stops[agency] = {}
+        with open(f"GTFS/{agency}/stop_times.txt", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            for trip in reader:
+                try:
+                    stop_trips[agency][trip["stop_id"]].append(trip["trip_id"])
+                    trip_stops[agency][trip["trip_id"]].append(trip["stop_id"])
+                except KeyError:
+                    stop_trips[agency][trip["stop_id"]] = [trip["trip_id"]]
+                    trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
 
-def stops(coord, amount=20):
+
+def stops(coord, amount=2):
     results = []
 
     for stop in all_stops:
         distance = geodesic(coord, stop["coord"]).meters
 
         results.append(
-            (distance, stop)
+            (round(distance, 1), stop)
         )
 
     results.sort(key=lambda x: x[0])
@@ -114,7 +141,8 @@ def stops(coord, amount=20):
 if __name__ == '__main__':
     print("\n\n\n")
     print(find_gtfs_dir())
-    load_stops()
+    load_trips("GRT")
     print(json.dumps(stops((43.505502, -80.522344)), indent=4))
     print(find_gtfs_dir())
+    print(json.dumps(trip_stops, indent=2))
     print("\n\n\n")
