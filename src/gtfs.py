@@ -125,16 +125,12 @@ def load_trips(agencies=ALL):
 
 def stops(coord, amount=2):
     results = []
-
     for stop in all_stops:
         distance = geodesic(coord, stop["coord"]).meters
-
         results.append(
             (round(distance, 1), stop)
         )
-
     results.sort(key=lambda x: x[0])
-
     return results[:amount]
 
 
@@ -144,5 +140,5 @@ if __name__ == '__main__':
     load_trips("GRT")
     print(json.dumps(stops((43.505502, -80.522344)), indent=4))
     print(find_gtfs_dir())
-    print(json.dumps(trip_stops, indent=2))
+    print(json.dumps(stop_trips, indent=2))
     print("\n\n\n")
