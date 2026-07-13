@@ -39,7 +39,6 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float]):
                     print("e2", end_stop)
     return possible_trips
 
-
 if __name__ == '__main__':
     print("\n\n\n")
     for trip in a_to_b((43.498310, -80.529517), (43.462290, -80.523532)):
