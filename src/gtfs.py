@@ -131,10 +131,12 @@ def load_trips(agencies="GRT"):
                         trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
 
 
-def stops(coord, amount=2):
+def stops(coord, amount=10, max_dist=100):
     results = []
     for stop in all_stops:
         distance = geodesic(coord, stop["coord"]).meters
+        if distance > max_dist:
+            continue
         results.append(
             (round(distance, 1), stop)
         )
