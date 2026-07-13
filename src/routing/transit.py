@@ -41,6 +41,6 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float]):
 
 if __name__ == '__main__':
     print("\n\n\n")
-    for trip in a_to_b((43.498310, -80.529517), (43.462290, -80.523532)):
+    for trip in a_to_b((43.454894, -80.493729), (43.645261, -79.380684)):
         print(trip)
     print("\n\n\n", flush=True)
