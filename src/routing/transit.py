@@ -12,7 +12,7 @@ from gtfs import stop_trips, trip_stops, stops, load_trips
 
 
 def a_to_b(start: tuple[float, float], end: tuple[float, float]):
-    load_trips("GRT")
+    load_trips()
 
     start_stops = stops(start)
     end_stops = stops(end)

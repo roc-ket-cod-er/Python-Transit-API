@@ -15,10 +15,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 URL = {
     "GRT": {
-        "ALL": "https://webapps.regionofwaterloo.ca/api/grt-routes/api/staticfeeds/0",
+        "BUS": "https://webapps.regionofwaterloo.ca/api/grt-routes/api/staticfeeds/1",
+        "LRT": "https://webapps.regionofwaterloo.ca/api/grt-routes/api/staticfeeds/2",
     },
     "GO": {
-        "ALL": "https://assets.metrolinx.com/raw/upload/Documents/Metrolinx/Open%20Data/GO-GTFS.zip"
+        "ALL": "https://assets.metrolinx.com/raw/upload/Documents/Metrolinx/Open%20Data/GO-GTFS.zip",
     }
 }
 
@@ -64,7 +65,7 @@ def update(agencies: str = ALL) -> None:
 
         for key in keys:
             url = URL[agency][key]
-            local_path = f"GTFS\\{agency}\\{key}" if key != "ALL" else f"GTFS\\{agency}"
+            local_path = f"GTFS\\{agency}\\{key}"
             Path(local_path).mkdir(parents=True, exist_ok=True)
             print(f"Fetching {url}")
 
@@ -87,43 +88,47 @@ def load_stops(agencies=ALL):
     global all_stops
     for agency in agencies.split("&&"):
         try:
-            with open(f"GTFS/{agency}/stops.txt", encoding="utf-8-sig") as f:
-                reader = csv.DictReader(f)
+            for key in list(URL[agency].keys()):
+                with open(f"GTFS/{agency}/{key}/stops.txt", encoding="utf-8-sig") as f:
+                    reader = csv.DictReader(f)
 
-                for stop in reader:
-                    try:
-                        all_stops.append({
-                            "agency": agency,
-                            "id": stop["stop_id"],
-                            "name": stop["stop_name"],
-                            "coord": (
-                                float(stop["stop_lat"]),
-                                float(stop["stop_lon"])
-                            )
-                        })
-                    except KeyError:
-                        print(json.dumps(stop, indent=2), agency)
-                        time.sleep(1)
+                    for stop in reader:
+                        try:
+                            all_stops.append({
+                                "agency": agency,
+                                "type": key,
+                                "id": stop["stop_id"],
+                                "name": stop["stop_name"],
+                                "coord": (
+                                    float(stop["stop_lat"]),
+                                    float(stop["stop_lon"])
+                                )
+                            })
+                        except KeyError:
+                            print(json.dumps(stop, indent=2), agency, key)
+                            time.sleep(1)
         except FileNotFoundError:
             update(agency)
+            load_stops(agencies)
 
-def load_trips(agencies=ALL):
+def load_trips(agencies="GRT"):
     global stop_trips, trip_stops
     for agency in agencies.split("&&"):
         load_stops(agency)
         stop_trips[agency] = {}
         trip_stops[agency] = {}
-        with open(f"GTFS/{agency}/stop_times.txt", encoding="utf-8-sig") as f:
-            reader = csv.DictReader(f)
-            for trip in reader:
-                try:
-                    stop_trips[agency][trip["stop_id"]].append(trip["trip_id"])
-                except KeyError:
-                    stop_trips[agency][trip["stop_id"]] = [trip["trip_id"]]
-                try:
-                    trip_stops[agency][trip["trip_id"]].append(trip["stop_id"])
-                except KeyError:
-                    trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
+        for service in list(URL[agency].keys()):
+            with open(f"GTFS/{agency}/{service}/stop_times.txt", encoding="utf-8-sig") as f:
+                reader = csv.DictReader(f)
+                for trip in reader:
+                    try:
+                        stop_trips[agency][trip["stop_id"]].append(trip["trip_id"])
+                    except KeyError:
+                        stop_trips[agency][trip["stop_id"]] = [trip["trip_id"]]
+                    try:
+                        trip_stops[agency][trip["trip_id"]].append(trip["stop_id"])
+                    except KeyError:
+                        trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
 
 
 def stops(coord, amount=2):
@@ -140,7 +145,7 @@ def stops(coord, amount=2):
 if __name__ == '__main__':
     print("\n\n\n")
     print(find_gtfs_dir())
-    load_trips("GRT")
+    load_trips(ALL)
     #print(json.dumps(stops((43.505502, -80.522344)), indent=4))
     print(find_gtfs_dir())
     print(json.dumps(stop_trips["GRT"]['1126'], indent=2))
