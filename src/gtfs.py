@@ -93,6 +93,7 @@ def load_stops(agencies=ALL):
                 for stop in reader:
                     try:
                         all_stops.append({
+                            "agency": agency,
                             "id": stop["stop_id"],
                             "name": stop["stop_name"],
                             "coord": (
@@ -117,9 +118,11 @@ def load_trips(agencies=ALL):
             for trip in reader:
                 try:
                     stop_trips[agency][trip["stop_id"]].append(trip["trip_id"])
-                    trip_stops[agency][trip["trip_id"]].append(trip["stop_id"])
                 except KeyError:
                     stop_trips[agency][trip["stop_id"]] = [trip["trip_id"]]
+                try:
+                    trip_stops[agency][trip["trip_id"]].append(trip["stop_id"])
+                except KeyError:
                     trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
 
 
@@ -138,7 +141,7 @@ if __name__ == '__main__':
     print("\n\n\n")
     print(find_gtfs_dir())
     load_trips("GRT")
-    print(json.dumps(stops((43.505502, -80.522344)), indent=4))
+    #print(json.dumps(stops((43.505502, -80.522344)), indent=4))
     print(find_gtfs_dir())
-    print(json.dumps(stop_trips, indent=2))
+    print(json.dumps(stop_trips["GRT"]['1126'], indent=2))
     print("\n\n\n")
