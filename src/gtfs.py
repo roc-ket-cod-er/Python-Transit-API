@@ -130,6 +130,9 @@ def load_trips(agencies="GRT"):
                     except KeyError:
                         trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
 
+            with open(f"GTFS/{agency}/{service}/trips.txt", encoding="utf-8-sig") as f:
+                
+
 
 def stops(coord, amount=10, max_dist=100):
     results = []
