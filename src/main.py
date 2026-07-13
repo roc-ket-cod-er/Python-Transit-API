@@ -3,7 +3,7 @@ import geopy
 import socket
 import asyncio
 from time import sleep
-from gtfs import update, ALL
+from routing.gtfs import update, ALL
 from print_color import *
 from geopy.geocoders import Nominatim
 from routing.walking import walk_route
