@@ -28,6 +28,7 @@ ALL = 'GRT&&GO'
 all_stops = []
 stop_trips = {}
 trip_stops = {}
+trips_route = {}
 
 class WeakDHAdapter(HTTPAdapter):
     """HTTPAdapter that lowers OpenSSL's security level and disables
@@ -112,7 +113,7 @@ def load_stops(agencies=ALL):
             load_stops(agencies)
 
 def load_trips(agencies=ALL):
-    global stop_trips, trip_stops
+    global stop_trips, trip_stops, trip_route
     for agency in agencies.split("&&"):
         load_stops(agency)
         stop_trips[agency] = {}
@@ -129,6 +130,15 @@ def load_trips(agencies=ALL):
                         trip_stops[agency][trip["trip_id"]].append(trip["stop_id"])
                     except KeyError:
                         trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
+
+            with open(f"GTFS/{agency}/{service}/trips.txt", encoding="utf-8-sig") as f:
+                reader = csv.DictReader(f)
+                for trip in reader:
+                    try:
+                        trips_route[trip["trip_id"]].append(trip["route_id"])
+                    except KeyError:
+                        trips_route[trip["trip_id"]] = trip["route_id"]
+                        
 
 
 def stops(coord, amount=10, max_dist=400):
