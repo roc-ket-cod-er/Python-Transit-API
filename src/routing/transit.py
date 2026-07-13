@@ -44,4 +44,4 @@ if __name__ == '__main__':
     print("\n\n\n")
     for trip in a_to_b((43.498382, -80.529215), (43.505109, -80.525749)):
         print(trip)
-    print("\n\n\n")
+    print("\n\n\n", flush=True)
