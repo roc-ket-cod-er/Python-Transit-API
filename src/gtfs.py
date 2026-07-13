@@ -111,7 +111,7 @@ def load_stops(agencies=ALL):
             update(agency)
             load_stops(agencies)
 
-def load_trips(agencies="GRT"):
+def load_trips(agencies=ALL):
     global stop_trips, trip_stops
     for agency in agencies.split("&&"):
         load_stops(agency)
@@ -130,11 +130,8 @@ def load_trips(agencies="GRT"):
                     except KeyError:
                         trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
 
-            with open(f"GTFS/{agency}/{service}/trips.txt", encoding="utf-8-sig") as f:
-                pass
 
-
-def stops(coord, amount=10, max_dist=100):
+def stops(coord, amount=10, max_dist=400):
     results = []
     for stop in all_stops:
         distance = geodesic(coord, stop["coord"]).meters
