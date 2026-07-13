@@ -36,7 +36,7 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float]):
                         if trip_stops[stop_agency][trip].index(stop_id) < trip_stops[stop_agency][trip].index(end_stop[1]["id"]):
                             possible_trips.append([stop_id, end_stop[1]["id"], trip])
                 except KeyError:
-                    print("e", end_stop)
+                    print("e2", end_stop)
     return possible_trips
 
 
