@@ -3,10 +3,10 @@ import geopy
 import socket
 import asyncio
 from time import sleep
-from routing.gtfs import update, ALL
+from gtfs import update, ALL, load_trips
 from print_color import *
 from geopy.geocoders import Nominatim
-from routing.walking import walk_route
+from routing import route
 
 s = Screen()
 geolocator = Nominatim(user_agent="Python Transit API")
@@ -62,6 +62,7 @@ async def main() -> int:
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
     await s.type(">>>", end='  ')
+    load_trips()
     inp = await s.input()
 
     if inp.lower() == "nav":
@@ -78,8 +79,8 @@ async def main() -> int:
         await s.scroll(s.nlines-8, time_per_row=0.05)
         await s.scroll(4)
 
-        instructions = walk_route(start_coord, end_coord)
-        await s.type(f"{instructions[0]}\n\nTotal distance: {instructions[1]/1000} km")
+        instructions = route(start_coord, end_coord)
+        await s.type(f"{"\n".join(instructions[0])}\n\nTotal distance walked: {instructions[1]/1000} km")
 
         await s.type("\n\nPress enter to restart", end="")
         await s.input()

@@ -135,13 +135,13 @@ def load_trips(agencies=ALL):
                 reader = csv.DictReader(f)
                 for trip in reader:
                     try:
-                        trips_route[trip["trip_id"]].append(trip["route_id"])
+                        trips_route[trip["trip_id"]].append((trip["route_id"], trip["trip_headsign"]))
                     except KeyError:
-                        trips_route[trip["trip_id"]] = trip["route_id"]
+                        trips_route[trip["trip_id"]] = (trip["route_id"], trip["trip_headsign"])
                         
 
 
-def stops(coord, amount=10, max_dist=400):
+def stops(coord, amount=30, max_dist=2000):
     results = []
     for stop in all_stops:
         distance = geodesic(coord, stop["coord"]).meters

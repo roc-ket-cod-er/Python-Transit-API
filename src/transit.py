@@ -1,12 +1,15 @@
 from gtfs import stop_trips, trip_stops, stops, load_trips, trips_route
 
 
-def a_to_b(start: tuple[float, float], end: tuple[float, float]):
+def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
     global trip_route
-    load_trips()
 
-    start_stops = stops(start)
-    end_stops = stops(end)
+    if err:
+        start_stops = stops(start, 50, 8000)
+        end_stops = stops(end, 50, 8000)
+    else:
+        start_stops = stops(start)
+        end_stops = stops(end)
 
     possible_trips = []
 
@@ -26,11 +29,11 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float]):
                     #print("e", end_stop)
                     if end_stop[1]["id"] in trip_stops[stop_agency][trip]:
                         if trip_stops[stop_agency][trip].index(stop_id) < trip_stops[stop_agency][trip].index(end_stop[1]["id"]):
-                            possible_trips.append([stop_id, end_stop[1]["id"], trips_route[trip], stop_agency])
+                            possible_trips.append((stop_id, end_stop[1]["id"], trips_route[trip], stop_agency))
                 except KeyError:
                     #print("e2", end_stop)
                     pass
-    return set(possible_trips)
+    return possible_trips
 
 if __name__ == '__main__':
     print("\n\n\n")

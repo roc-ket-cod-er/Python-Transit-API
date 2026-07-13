@@ -112,7 +112,7 @@ class Screen:
                 if char == '\n':
                     continue
         self.screen += end
-        print(end=end)
+        print(end=end, flush=True)
 
     async def type(self, *all_to_print, delay: float = 0.02, end: str = '\n'):
         for to_print in all_to_print:
