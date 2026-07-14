@@ -58,11 +58,12 @@ async def get_end_coord(start_coord: list, error: bool =False) -> list:
             await s.type(red(f"\nInvalid input. Please try a different address/keyword or enter a coordinate ({e})"), delay=0.01)
             return await get_end_coord(start_coord, error=True)
 
-async def main() -> int:
+async def main(first=False) -> int:
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
     await s.type(">>>", end='  ')
-    load_trips()
+    if not first:
+        load_trips()
     inp = await s.input()
 
     if inp.lower() == "nav":
@@ -116,4 +117,4 @@ async def main() -> int:
     return 0
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(True))
