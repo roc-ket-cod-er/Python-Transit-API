@@ -61,7 +61,10 @@ def format_step(step):
         return format_depart(step)
 
     if maneuver == "turn":
-        return f"Turn {modifier} onto {street}, then continue for {distance} m."
+        if street:
+            return f"Turn {modifier} onto {street}, then continue for {distance} m."
+        else:
+            return f"Turn {modifier} and continue for {distance} m."
 
     if maneuver == "arrive":
         return "You have arrived."
