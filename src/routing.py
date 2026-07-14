@@ -1,11 +1,14 @@
+import gtfs
 import transit
 import walking
-import gtfs
+from walking import WALK_SPEED_MPS
+from geopy.distance import geodesic
 
-def route(start: tuple[float, float], end: tuple[float, float]):
+def route(start: tuple[float, float], end: tuple[float, float], filter: int=10):
     sstops_checked = {}
     estops_checked = {}
-    best_time = 99999999
+    filtered_trips = []
+    best_times = []
     trips = transit.a_to_b(start, end)
     if len(trips) == 0:
         trips = transit.a_to_b(start, end, True)
@@ -14,6 +17,24 @@ def route(start: tuple[float, float], end: tuple[float, float]):
             return [walk[0].split("\n")[:-1], walk[1]]
     
     for trip in trips:
+        starting_stop, ending_stop, trip_id, agency, time_for_transit, t1 = trip
+
+        ttrip_start = starting_stop[1]["coord"]
+        ttrip_end = ending_stop[1]["coord"]
+
+        time  = (geodesic(start, ttrip_start).meters * 1.3) // WALK_SPEED_MPS
+        time += time_for_transit[0] * 3600 + time_for_transit[1] * 60 + time_for_transit[2]
+        time += (geodesic(ttrip_end, end) * 1.3).meters // WALK_SPEED_MPS
+
+        best_times.append(time)
+        best_times.sort()
+        best_times = best_times[:filter]
+        if time in best_times:
+            filtered_trips.insert(best_times.index(time), trip)
+            filtered_trips = filtered_trips[:filter]
+    
+    best_time = 99999999
+    for trip in filtered_trips:
         starting_stop, ending_stop, trip_id, agency, time_for_transit, t1 = trip
 
         sid = starting_stop[1]["id"]
@@ -38,7 +59,14 @@ def route(start: tuple[float, float], end: tuple[float, float]):
         distance_walked += walk[1]
         time += walk[2]
 
-        route.append(f'From "{starting_stop_name}" to "{ending_stop_name}", use route {trip_id[0]}, towards "{trip_id[1]}" (run by {agency})')
+        if time_for_transit[2] < 0:
+            time_for_transit[1] -= 1
+            time_for_transit[2] += 60
+        if time_for_transit[1] < 0:
+            time_for_transit[0] -= 1
+            time_for_transit[1] += 60
+
+        route.append(f'From "{starting_stop_name}" to "{ending_stop_name}", use route {trip_id[0]}, towards "{trip_id[1]}" (run by {agency}) (Should take about {time_for_transit[0]}:{time_for_transit[1]}m)')
         time += time_for_transit[0] * 3600 + time_for_transit[1] * 60 + time_for_transit[2]
 
         if not eid in estops_checked:
