@@ -14,17 +14,14 @@ def route(start: tuple[float, float], end: tuple[float, float]):
             return [walk[0].split("\n")[:-1], walk[1]]
     starting_stop, ending_stop, trip_id, agency = trip
 
-    for stop in gtfs.all_stops:
-        if stop["id"] == starting_stop:
-            ttrip_start = stop["coord"]
-        if stop["id"] == ending_stop:
-            ttrip_end = stop["coord"]
+    sid = starting_stop[1]["id"]
+    eid = ending_stop[1]["id"]
 
-    for stop in gtfs.all_stops:
-        if stop["id"] == starting_stop:
-            starting_stop_name = stop["name"]
-        elif stop["id"] == ending_stop:
-            ending_stop_name = stop["name"]
+    ttrip_start = starting_stop[1]["coord"]
+    ttrip_end = ending_stop[1]["coord"]
+
+    starting_stop_name = starting_stop[1]["name"]
+    ending_stop_name = ending_stop[1]["name"]
 
     route = []
     distance_walked = 0
@@ -44,5 +41,6 @@ def route(start: tuple[float, float], end: tuple[float, float]):
 
 if __name__ == '__main__':
     print("\n\n\n\n")
-    route((43.453181, -80.499048), (43.651181, -79.378753))
+    gtfs.load_trips()
+    print(route((43.505502, -80.522344), (43.479346, -80.529788)))
     print("\n\n\n\n")
