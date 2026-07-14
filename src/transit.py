@@ -1,3 +1,4 @@
+import json
 from gtfs import stop_trips, trip_stops, stops, load_trips, trips_route
 
 
@@ -29,7 +30,7 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
                     #print("e", end_stop)
                     if end_stop[1]["id"] in trip_stops[stop_agency][trip]:
                         if trip_stops[stop_agency][trip].index(stop_id) < trip_stops[stop_agency][trip].index(end_stop[1]["id"]):
-                            possible_trips.append((stop_id, end_stop[1]["id"], trips_route[trip], stop_agency))
+                            possible_trips.append((stop, end_stop, trips_route[trip], stop_agency))
                 except KeyError:
                     #print("e2", end_stop)
                     pass
@@ -37,6 +38,7 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
 
 if __name__ == '__main__':
     print("\n\n\n")
-    for trip in a_to_b((43.454894, -80.493729), (43.645261, -79.380684)):
-        print(trip)
+    load_trips()
+    for trip in a_to_b((43.505502, -80.522344), (43.479346, -80.529788)):
+        print(json.dumps(trip, indent=2), "\n\n\n")
     print("\n\n\n", flush=True)
