@@ -81,7 +81,10 @@ async def main(first=False) -> int:
 
         instructions = route(start_coord, end_coord)
         await s.type(f"{"\n".join(instructions[0])}\n\nTotal distance walked: {instructions[1]/1000} km")
-        await s.type(f"\nIt should take {int(instructions[2][0])} hours and {int(instructions[2][1])} minutes.")
+        if int(instructions[2][0]):
+            await s.type(f"\nIt should take {int(instructions[2][0])} hours and {int(instructions[2][1])} minutes.")
+        else:
+            await s.type(f"\nIt should take {int(instructions[2][1])} minutes.")
 
         await s.type("\n\nPress enter to restart", end="")
         await s.input()

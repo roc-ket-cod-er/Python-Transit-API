@@ -1,5 +1,5 @@
 import json
-from gtfs import stop_trips, trip_stops, stops, load_trips, trips_route
+from gtfs import stop_trips, trip_stops, stops, load_trips, trips_route, stoptrip_time
 
 
 def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
@@ -17,20 +17,26 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
     for stop in start_stops:
         #print(stop)
         try:
-            stop_id = stop[1]["id"]
+            sid = stop[1]["id"]
             stop_agency = stop[1]["agency"]
-            trips = stop_trips[stop_agency][stop_id]
+            trips = stop_trips[stop_agency][sid]
         except KeyError:
             #print("e", stop)
             pass
         for trip in trips:
             #print(trip)
             for end_stop in end_stops:
+                eid = end_stop[1]["id"]
                 try:
                     #print("e", end_stop)
-                    if end_stop[1]["id"] in trip_stops[stop_agency][trip]:
-                        if trip_stops[stop_agency][trip].index(stop_id) < trip_stops[stop_agency][trip].index(end_stop[1]["id"]):
-                            possible_trips.append((stop, end_stop, trips_route[trip], stop_agency))
+                    if eid in trip_stops[stop_agency][trip]:
+                        start_index = trip_stops[stop_agency][trip].index(sid)
+                        stop_index = trip_stops[stop_agency][trip].index(eid)
+                        if start_index < stop_index:
+                            stime = stoptrip_time[stop_agency][trip][sid][1].split(":")
+                            etime = stoptrip_time[stop_agency][trip][eid][0].split(":")
+                            time_for_transit = [int(x) - int(y) for x, y in zip(etime, stime)]
+                            possible_trips.append((stop, end_stop, trips_route[trip], stop_agency, time_for_transit, trip))
                 except KeyError:
                     #print("e2", end_stop)
                     pass

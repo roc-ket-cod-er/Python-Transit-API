@@ -29,6 +29,7 @@ all_stops = []
 stop_trips = {}
 trip_stops = {}
 trips_route = {}
+stoptrip_time = {}
 
 class WeakDHAdapter(HTTPAdapter):
     """HTTPAdapter that lowers OpenSSL's security level and disables
@@ -116,8 +117,9 @@ def load_trips(agencies=ALL):
     global stop_trips, trip_stops, trip_route
     for agency in agencies.split("&&"):
         load_stops(agency)
-        stop_trips[agency] = {}
-        trip_stops[agency] = {}
+        stop_trips[agency]    = {}
+        trip_stops[agency]    = {}
+        stoptrip_time[agency] = {}
         for service in list(URL[agency].keys()):
             with open(f"GTFS/{agency}/{service}/stop_times.txt", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
@@ -130,6 +132,14 @@ def load_trips(agencies=ALL):
                         trip_stops[agency][trip["trip_id"]].append(trip["stop_id"])
                     except KeyError:
                         trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
+                    try:
+                        stoptrip_time[agency][trip["trip_id"]][trip["stop_id"]].append([trip["arrival_time"], trip["departure_time"]])
+                    except KeyError:
+                        try:
+                            stoptrip_time[agency][trip["trip_id"]][trip["stop_id"]] = [trip["arrival_time"], trip["departure_time"]]
+                        except KeyError:
+                            stoptrip_time[agency][trip["trip_id"]] = {}
+                            stoptrip_time[agency][trip["trip_id"]][trip["stop_id"]] = [trip["arrival_time"], trip["departure_time"]]
 
             with open(f"GTFS/{agency}/{service}/trips.txt", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
@@ -141,7 +151,7 @@ def load_trips(agencies=ALL):
                         
 
 
-def stops(coord, amount=30, max_dist=2000):
+def stops(coord, amount=70, max_dist=2000):
     results = []
     for stop in all_stops:
         distance = geodesic(coord, stop["coord"]).meters
@@ -151,6 +161,7 @@ def stops(coord, amount=30, max_dist=2000):
             (round(distance, 1), stop)
         )
     results.sort(key=lambda x: x[0])
+    #print(len(results), results[:amount])
     return results[:amount]
 
 

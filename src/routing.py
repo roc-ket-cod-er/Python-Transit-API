@@ -14,7 +14,7 @@ def route(start: tuple[float, float], end: tuple[float, float]):
             return [walk[0].split("\n")[:-1], walk[1]]
     
     for trip in trips:
-        starting_stop, ending_stop, trip_id, agency = trip
+        starting_stop, ending_stop, trip_id, agency, time_for_transit, t1 = trip
 
         sid = starting_stop[1]["id"]
         eid = ending_stop[1]["id"]
@@ -39,6 +39,7 @@ def route(start: tuple[float, float], end: tuple[float, float]):
         time += walk[2]
 
         route.append(f'From "{starting_stop_name}" to "{ending_stop_name}", use route {trip_id[0]}, towards "{trip_id[1]}" (run by {agency})')
+        time += time_for_transit[0] * 3600 + time_for_transit[1] * 60 + time_for_transit[2]
 
         if not eid in estops_checked:
             walk = walking.walk_route(ttrip_end, end)
@@ -56,6 +57,7 @@ def route(start: tuple[float, float], end: tuple[float, float]):
         if time < best_time:
             best_trip = [route, distance_walked, (hours, minutes, seconds)]
             best_time = time
+            print(best_time, time_for_transit, trip_id, sid, eid, t1)
 
     #print(route)
     return(best_trip)
