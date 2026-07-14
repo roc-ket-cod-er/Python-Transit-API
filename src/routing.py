@@ -63,5 +63,5 @@ def route(start: tuple[float, float], end: tuple[float, float]):
 if __name__ == '__main__':
     print("\n\n\n\n")
     gtfs.load_trips()
-    print(route((43.505502, -80.522344), (43.479346, -80.529788)))
+    print(route((43.452821, -80.498260), (43.479346, -80.529788)))
     print("\n\n\n\n")
