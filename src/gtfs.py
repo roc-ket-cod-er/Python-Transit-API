@@ -68,16 +68,16 @@ def update(agencies: str = ALL) -> None:
             url = URL[agency][key]
             local_path = f"GTFS\\{agency}\\{key}"
             Path(local_path).mkdir(parents=True, exist_ok=True)
-            print(f"Fetching {url}")
+            #print(f"Fetching {url}")
 
             response = session.get(url, verify=False)
             if response.status_code == 200:
-                print(f"wrtiting to {local_path + "\\data.zip"}")
+                #print(f"wrtiting to {local_path + "\\data.zip"}")
                 with open(local_path + r"\data.zip", "wb") as file:
                     file.write(response.content)
-                print("Download complete!")
+                #print("Download complete!")
             else:
-                print(f"Failed to download. Status code: {response.status_code}")
+                #print(f"Failed to download. Status code: {response.status_code}")
                 continue
 
             with zipfile.ZipFile(local_path + "\\data.zip", 'r') as zip_ref:
@@ -158,7 +158,6 @@ if __name__ == '__main__':
     print("\n\n\n")
     print(find_gtfs_dir())
     load_trips(ALL)
-    print(json.dumps(stops((43.505502, -80.522344)), indent=4))
     print(find_gtfs_dir())
     #print(json.dumps(stop_trips["GRT"]['1126'], indent=2))
     print("\n\n\n")
