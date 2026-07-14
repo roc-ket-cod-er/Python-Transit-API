@@ -129,7 +129,7 @@ def load_trips(agencies=ALL):
                     except KeyError:
                         stop_trips[agency][trip["stop_id"]] = [trip["trip_id"]]
                     try:
-                        trip_stops[agency][trip["trip_id"]].append(trip["stop_id"])
+                        trip_stops[agency][trip["trip_id"]].insert(int(trip["stop_sequence"])-1, trip["stop_id"])
                     except KeyError:
                         trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
                     try:
