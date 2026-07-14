@@ -39,6 +39,6 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
 if __name__ == '__main__':
     print("\n\n\n")
     load_trips()
-    for trip in a_to_b((43.505502, -80.522344), (43.479346, -80.529788)):
+    for trip in a_to_b((43.452821, -80.498260), (43.479346, -80.529788)):
         print(json.dumps(trip, indent=2), "\n\n\n")
     print("\n\n\n", flush=True)
