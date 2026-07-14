@@ -1,6 +1,7 @@
 import requests
 
 WALK_SPEED_KMH = 6
+WALK_SPEED_MPS = WALK_SPEED_KMH/3.6
 
 def get_walking_route(start: tuple[float, float], end: tuple[float, float]):
     url = (
@@ -84,7 +85,7 @@ def walk_route(start: tuple[float, float], end: tuple[float, float]) -> list:
         tbr += format_step(step) + "\n"
         dist += step["distance"]
 
-    return (tbr, round(dist))
+    return (tbr, round(dist), round(dist) //WALK_SPEED_MPS)
 
 
 if __name__ == '__main__':
