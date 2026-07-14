@@ -62,7 +62,7 @@ async def main(first=False) -> int:
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
     await s.type(">>>", end='  ')
-    if not first:
+    if first:
         load_trips()
     inp = await s.input()
 
@@ -70,7 +70,6 @@ async def main(first=False) -> int:
         await s.type("This program will help you find the best route between two locations.\n")
 
         start_coord = await get_start_coord()
-
         end_coord = await get_end_coord(start_coord)
 
         await s.type(
@@ -82,6 +81,7 @@ async def main(first=False) -> int:
 
         instructions = route(start_coord, end_coord)
         await s.type(f"{"\n".join(instructions[0])}\n\nTotal distance walked: {instructions[1]/1000} km")
+        await s.type(f"\nIt should take {int(instructions[2][0])} hours and {int(instructions[2][1])} minutes.")
 
         await s.type("\n\nPress enter to restart", end="")
         await s.input()
