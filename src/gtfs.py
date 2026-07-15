@@ -2,9 +2,10 @@ import ssl
 import csv
 import json
 import time
-import requests
+import pickle
 import urllib3
 import zipfile
+import requests
 from pathlib import Path
 from os import remove, path
 from geopy.distance import geodesic
@@ -86,6 +87,8 @@ def update(agencies: str = ALL) -> None:
 
             remove(local_path + "\\data.zip")
 
+    load_trips(agencies)
+
 def load_stops(agencies=ALL):
     global all_stops
     for agency in agencies.split("&&"):
@@ -125,6 +128,7 @@ async def load_trips(agencies=ALL):
         stop_trips[agency] = {}
         trip_stops[agency] = {}
         stoptrip_time[agency] = {}
+        trips_route[agency] = {}
 
         stop_trips_agency = stop_trips[agency]
         trip_stops_agency = trip_stops[agency]
@@ -180,6 +184,19 @@ async def load_trips(agencies=ALL):
             stimes.append(["load_trips", time.monotonic()])
 
     print("loaded,", [(time.monotonic() - t[1], t[0]) for t in stimes])
+    with open("GTFS/gtfs_cache.pkl", "wb") as f:
+        pickle.dump(
+            (stop_trips, trip_stops, trips_route, stoptrip_time),
+            f
+        )
+
+async def load_save():
+    try:
+        global stop_trips, trip_stops, trips_route, stoptrip_time
+        with open("GTFS/gtfs_cache.pkl", "rb") as f:
+            stop_trips, trip_stops, trips_route, stoptrip_time = pickle.load(f)
+    except FileNotFoundError:
+        await load_trips()
 
 
 def stops(coord, amount=70, max_dist=2000):
@@ -198,8 +215,5 @@ def stops(coord, amount=70, max_dist=2000):
 
 if __name__ == '__main__':
     print("\n\n\n")
-    print(find_gtfs_dir())
-    load_trips(ALL)
-    print(find_gtfs_dir())
-    print(json.dumps(stoptrip_time["GRT"], indent=2))
+    load_save()
     print("\n\n\n")

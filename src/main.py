@@ -3,7 +3,7 @@ import geopy
 import socket
 import asyncio
 from time import sleep
-from gtfs import update, ALL, load_trips
+from gtfs import update, ALL, load_save
 from print_color import *
 from geopy.geocoders import Nominatim
 from routing import route
@@ -63,7 +63,7 @@ async def main(first=False) -> int:
     s.clear()
     await s.type(">>>", end='  ')
     if first:
-        await load_trips()
+        await load_save()
     inp = await s.input()
 
     if inp.lower() == "nav":
