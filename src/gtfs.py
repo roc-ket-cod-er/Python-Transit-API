@@ -113,42 +113,73 @@ def load_stops(agencies=ALL):
             update(agency)
             load_stops(agencies)
 
-def load_trips(agencies=ALL):
+async def load_trips(agencies=ALL):
     stimes = [["start", time.monotonic()]]
-    #print("loading")
+
     global stop_trips, trip_stops, trips_route, stoptrip_time
-    
+
     for agency in agencies.split("&&"):
         load_stops(agency)
         stimes.append(["load_stops", time.monotonic()])
-        stop_trips[agency]    = {}
-        trip_stops[agency]    = {}
+
+        stop_trips[agency] = {}
+        trip_stops[agency] = {}
         stoptrip_time[agency] = {}
-        
-        for service in list(URL[agency].keys()):
-            with open(f"GTFS/{agency}/{service}/stop_times.txt", encoding="utf-8-sig") as f:
-                reader = csv.DictReader(f)
-                for trip in reader:
-                    stop_trips[agency].setdefault(trip["stop_id"], []).append(trip["trip_id"])
-                    
-                    if trip["trip_id"] not in trip_stops[agency]:
-                        trip_stops[agency][trip["trip_id"]] = {}
-                    
-                    if trip["trip_id"] not in stoptrip_time[agency]:
-                        stoptrip_time[agency][trip["trip_id"]] = {}
-                    
-                    trip_stops[agency][trip["trip_id"]][trip["stop_id"]] = int(trip["stop_sequence"]) - 1
-                    stoptrip_time[agency][trip["trip_id"]].setdefault(trip["stop_id"], []).extend(
-                        [trip["arrival_time"], trip["departure_time"]]
+
+        stop_trips_agency = stop_trips[agency]
+        trip_stops_agency = trip_stops[agency]
+        stoptrip_time_agency = stoptrip_time[agency]
+
+        for service in URL[agency]:
+            # ---------- stop_times.txt ----------
+            with open(f"GTFS/{agency}/{service}/stop_times.txt",
+                      encoding="utf-8-sig", newline="") as f:
+
+                reader = csv.reader(f)
+                header = next(reader)
+
+                trip_id_i = header.index("trip_id")
+                stop_id_i = header.index("stop_id")
+                arrival_i = header.index("arrival_time")
+                departure_i = header.index("departure_time")
+                stop_seq_i = header.index("stop_sequence")
+
+                for row in reader:
+                    trip_id = row[trip_id_i]
+                    stop_id = row[stop_id_i]
+
+                    trip_dict = trip_stops_agency.setdefault(trip_id, {})
+                    time_dict = stoptrip_time_agency.setdefault(trip_id, {})
+
+                    stop_trips_agency.setdefault(stop_id, []).append(trip_id)
+
+                    trip_dict[stop_id] = int(row[stop_seq_i]) - 1
+                    time_dict[stop_id] = (
+                        row[arrival_i],
+                        row[departure_i]
                     )
-            stimes.append(["load_gtfs", time.monotonic()])
-            with open(f"GTFS/{agency}/{service}/trips.txt", encoding="utf-8-sig") as f:
-                reader = csv.DictReader(f)
-                for trip in reader:
-                    trips_route.setdefault(trip["trip_id"], []).extend(
-                        (trip["route_id"], trip["trip_headsign"])
+
+            stimes.append(["load_stop_times", time.monotonic()])
+
+            # ---------- trips.txt ----------
+            with open(f"GTFS/{agency}/{service}/trips.txt",
+                      encoding="utf-8-sig", newline="") as f:
+
+                reader = csv.reader(f)
+                header = next(reader)
+
+                trip_id_i = header.index("trip_id")
+                route_id_i = header.index("route_id")
+                headsign_i = header.index("trip_headsign")
+
+                for row in reader:
+                    trips_route.setdefault(row[trip_id_i], []).extend(
+                        (row[route_id_i], row[headsign_i])
                     )
-    print("loaded,", list((time.monotonic() - t[1], t[0]) for t in stimes))
+
+            stimes.append(["load_trips", time.monotonic()])
+
+    print("loaded,", [(time.monotonic() - t[1], t[0]) for t in stimes])
 
 
 def stops(coord, amount=70, max_dist=2000):
