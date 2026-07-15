@@ -109,7 +109,7 @@ async def walk_routes(*coords: tuple[tuple[float, float], tuple[float, float]]):
             tbr[i] += format_step(step) + "\n"
             dist[i] += step["distance"]
 
-    return list((tbr, round(dist), round(dist) //WALK_SPEED_MPS) for tbr, dist in zip(tbr, dist))
+    return list((t, round(d), round(d) // WALK_SPEED_MPS) for t, d in zip(tbr, dist))
 
 async def main():
     print("\n\n\n")
