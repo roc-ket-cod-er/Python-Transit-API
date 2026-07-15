@@ -100,7 +100,7 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
             best_time = time
 
     walk = await walking.walk_route(start, end)
-    if walk[2] < best_time:
+    if walk[2] < best_time*0.9:
         time = walk[2]
         seconds = time % 60
         minutes = (time // 60) % 60
