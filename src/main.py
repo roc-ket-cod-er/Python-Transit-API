@@ -1,9 +1,10 @@
 # Main.py
+import gtfs
 import geopy
 import socket
 import asyncio
 from time import sleep
-from gtfs import update, ALL, load_save
+from gtfs import ALL
 from print_color import *
 from geopy.geocoders import Nominatim
 from routing import route
@@ -14,9 +15,9 @@ geolocator = Nominatim(user_agent="Python Transit API")
 def addr_to_loc(address: str) -> list:
     try:
         location = geolocator.geocode(address)
-        return [location.latitude, location.longitude]
+        return (location.latitude, location.longitude)
     except (socket.gaierror, geopy.exc.GeocoderUnavailable):
-        return ["NO WIFI"]
+        return ("NO WIFI")
     
 def pretty_coord(coord: list) -> str:
     lat, lon = coord
@@ -26,13 +27,13 @@ def pretty_coord(coord: list) -> str:
 
     return f"{abs(lat):.6f}° {ns}, {abs(lon):.6f}° {ew}"
 
-async def get_start_coord():
+async def get_start_coord() -> tuple:
     await s.type("I want to go from: ", end="")
     try:
         start_coord = await s.input()
-        if start_coord.lower() == "update grt gtfs":
+        if start_coord.lower() == "update gtfs":
             return start_coord.lower()
-        return list(map(float, start_coord.split(",")))
+        return tuple(map(float, start_coord.split(",")))
     except (ValueError, IndexError):
         try:
             return addr_to_loc(start_coord)
@@ -40,7 +41,7 @@ async def get_start_coord():
             await s.type(red(f"\nInvalid input. Please try a different address/keyword or enter a coordinate ({e})"), delay=0.01)
             return await get_start_coord()
 
-async def get_end_coord(start_coord: list, error: bool =False) -> list:
+async def get_end_coord(start_coord: list, error: bool =False) -> tuple:
     if not error:
         s.delete_last_lines(2)
         s.print(f"I want to go from: {bold(blue(f'{pretty_coord(start_coord)}'))} to ", end="")
@@ -50,7 +51,7 @@ async def get_end_coord(start_coord: list, error: bool =False) -> list:
 
     try:
         end_coord = await s.input()
-        return list(map(float, end_coord.split(",")))
+        return tuple(map(float, end_coord.split(",")))
     except (ValueError, IndexError):
         try:
             return addr_to_loc(end_coord)
@@ -63,7 +64,7 @@ async def main(first=False) -> int:
     s.clear()
     await s.type(">>>", end='  ')
     if first:
-        await load_save()
+        await gtfs.load_save()
     inp = await s.input()
 
     if inp.lower() == "nav":
@@ -78,7 +79,6 @@ async def main(first=False) -> int:
         )
         await s.scroll(s.nlines-8, time_per_row=0.05)
         await s.scroll(4)
-
         instructions = await route(start_coord, end_coord)
         instructions = instructions[0]
         await s.type(f"{"\n".join(instructions[0])}\n\nTotal distance walked: {instructions[1]/1000} km")
@@ -95,7 +95,7 @@ async def main(first=False) -> int:
         if await s.input() == "n":
             return await main()
         s.print("updating gtfs for grt")
-        update(ALL)
+        gtfs.update(ALL)
         return await main()
     elif inp.lower() == 'help':
         await s.type(

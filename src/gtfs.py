@@ -5,6 +5,7 @@ import time
 import pickle
 import urllib3
 import zipfile
+import asyncio
 import requests
 from pathlib import Path
 from os import remove, path
@@ -119,7 +120,7 @@ def load_stops(agencies=ALL):
 async def load_trips(agencies=ALL):
     stimes = [["start", time.monotonic()]]
 
-    global stop_trips, trip_stops, trips_route, stoptrip_time
+    global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops
 
     for agency in agencies.split("&&"):
         load_stops(agency)
@@ -186,17 +187,46 @@ async def load_trips(agencies=ALL):
     print("loaded,", [(time.monotonic() - t[1], t[0]) for t in stimes])
     with open("GTFS/gtfs_cache.pkl", "wb") as f:
         pickle.dump(
-            (stop_trips, trip_stops, trips_route, stoptrip_time),
+            (stop_trips, trip_stops, trips_route, stoptrip_time, all_stops),
             f
         )
 
 async def load_save():
+    global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops
     try:
-        global stop_trips, trip_stops, trips_route, stoptrip_time
         with open("GTFS/gtfs_cache.pkl", "rb") as f:
-            stop_trips, trip_stops, trips_route, stoptrip_time = pickle.load(f)
+            (stop_trips, trip_stops, trips_route, stoptrip_time, all_stops) = pickle.load(f)
+
+        '''print(
+            "loaded:",
+            len(stop_trips),
+            len(trip_stops),
+            len(trips_route),
+            len(stoptrip_time),
+            len(all_stops)
+        )
+
+        print(stop_trips.keys())
+        print(trip_stops.keys())
+        print(stoptrip_time.keys())
+
+        agency = list(stop_trips.keys())[0]
+
+        stop = list(stop_trips[agency].keys())[0]
+
+        print(agency)
+        print(stop)
+        print(stop_trips[agency][stop][:5])'''
     except FileNotFoundError:
         await load_trips()
+        '''print(
+            "loaded:",
+            len(stop_trips),
+            len(trip_stops),
+            len(trips_route),
+            len(stoptrip_time),
+            len(all_stops)
+        )'''
 
 
 def stops(coord, amount=70, max_dist=2000):
@@ -212,8 +242,10 @@ def stops(coord, amount=70, max_dist=2000):
     #print(len(results), results[:amount])
     return results[:amount]
 
+async def main():
+    print("\n\n\n")
+    await load_save()
+    print("\n\n\n")
 
 if __name__ == '__main__':
-    print("\n\n\n")
-    load_save()
-    print("\n\n\n")
+    asyncio.run(main())
