@@ -104,7 +104,7 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
 
 async def main():
     print("\n\n\n")
-    gtfs.load_trips()
+    await gtfs.load_trips()
 
     rt = await route((43.452821, -80.498260), (43.479346, -80.529788))
 
