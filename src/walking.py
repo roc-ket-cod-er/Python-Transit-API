@@ -21,10 +21,10 @@ async def get_walking_route(session, start: tuple[float, float], end: tuple[floa
     }
 
     async with session.get(url, params=params) as response:
-        return await orjson.loads(response.content)
+        data = await response.read()
+        return orjson.loads(data)
 
 async def get_walking_routes(*coords: tuple[tuple[float, float], tuple[float, float]]):
-
     async with aiohttp.ClientSession() as session:
         tasks = [get_walking_route(session, *coord) for coord in coords]
         results = await asyncio.gather(*tasks)
