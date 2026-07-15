@@ -9,6 +9,9 @@ from print_color import *
 from geopy.geocoders import Nominatim
 from routing import route
 
+WALK_SPEED_KMH = 5
+WALK_SPEED_MPS = WALK_SPEED_KMH/3.6
+
 s = Screen()
 geolocator = Nominatim(user_agent="Python Transit API")
 
@@ -81,13 +84,13 @@ async def main(first=False) -> int:
         await s.scroll(4)
         instructions = await route(start_coord, end_coord)
         instructions = instructions[0]
-        await s.type(f"{"\n".join(instructions[0])}\n\nTotal distance walked: {instructions[1]/1000} km")
+        await s.type(f"{"\n".join(instructions[0])}\n\nTotal distance walked: {instructions[1]/1000} km", delay=0.01)
         if int(instructions[2][0]):
             await s.type(f"\nIt should take {int(instructions[2][0])} hours and {int(instructions[2][1])} minutes.")
         else:
             await s.type(f"\nIt should take {int(instructions[2][1])} minutes.")
 
-        await s.type("\n\nPress enter to restart", end="")
+        await s.type("\n\nPress enter to restart", end="", delay=0.03)
         await s.input()
         await main()
     elif inp.lower() == 'update':
