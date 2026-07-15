@@ -1,5 +1,6 @@
 import aiohttp
 import asyncio
+import orjson
 
 WALK_SPEED_KMH = 6
 WALK_SPEED_MPS = WALK_SPEED_KMH/3.6
@@ -20,7 +21,7 @@ async def get_walking_route(session, start: tuple[float, float], end: tuple[floa
     }
 
     async with session.get(url, params=params) as response:
-        return await response.json()
+        return await orjson.loads(response.content)
 
 async def get_walking_routes(*coords: tuple[tuple[float, float], tuple[float, float]]):
 
