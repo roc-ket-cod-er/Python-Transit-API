@@ -3,3 +3,4 @@ GTFS/
 *.pyc
 __pycache__/
 src/__pychache__/
+src/secrets.py
