@@ -114,7 +114,7 @@ def load_stops(agencies=ALL):
             load_stops(agencies)
 
 def load_trips(agencies=ALL):
-    print("loading")
+    #print("loading")
     global stop_trips, trip_stops, trips_route, stoptrip_time
     
     for agency in agencies.split("&&"):
@@ -146,7 +146,7 @@ def load_trips(agencies=ALL):
                     trips_route.setdefault(trip["trip_id"], []).extend(
                         (trip["route_id"], trip["trip_headsign"])
                     )
-    print("loaded")
+    #print("loaded")
         
 
 
