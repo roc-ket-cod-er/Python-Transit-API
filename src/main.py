@@ -1,6 +1,7 @@
 # Main.py
 import gtfs
 import geopy
+import pickle
 import socket
 import asyncio
 from time import sleep
@@ -9,8 +10,16 @@ from print_color import *
 from geopy.geocoders import Nominatim
 from routing import route
 
-WALK_SPEED_KMH = 5
-WALK_SPEED_MPS = WALK_SPEED_KMH/3.6
+try:
+    with open("GTFS/general.pkl", "rb") as f:
+        (WALK_SPEED_MPS) = pickle.load(f)
+except FileNotFoundError:
+    WALK_SPEED_MPS = 5  /3.6
+    with open("GTFS/gtfs_cache.pkl", "wb") as f:
+        pickle.dump(
+            (WALK_SPEED_MPS),
+            f
+        )
 
 s = Screen()
 geolocator = Nominatim(user_agent="Python Transit API")

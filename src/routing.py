@@ -3,7 +3,6 @@ from time import monotonic_ns
 import transit
 import walking
 import asyncio
-from walking import WALK_SPEED_MPS
 from geopy.distance import geodesic
 
 async def route(start: tuple[float, float], end: tuple[float, float], filter: int=10):
@@ -29,26 +28,23 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         sstop = trip[0][1]
         estop = trip[1][1]
 
-        swalk_routes.append((start, sstop["coord"]))
-        ewalk_routes.append((estop["coord"], end))
-
-        sstops.append(sstop["id"])
-        estops.append(estop["id"])
-
-    swalk_routes = list(dict.fromkeys(swalk_routes))
-    ewalk_routes = list(dict.fromkeys(ewalk_routes))
-    sstops = list(dict.fromkeys(sstops))
-    estops = list(dict.fromkeys(estops))
+        if not estop["id"] in estops:
+            estops.append(estop["id"])
+            ewalk_routes.append((estop["coord"], end))
+        if not sstop["id"] in sstops:
+            sstops.append(sstop["id"])
+            swalk_routes.append((start, sstop["coord"]))
 
     walk_routes = swalk_routes + ewalk_routes
     walked_routes = await walking.walk_routes(*walk_routes)
 
-    amount = len(walked_routes)
-    middle = amount // 2
+    start_amount = len(swalk_routes)
 
-    for i in range(middle):
-        estops_checked[estops[i]] = walked_routes[middle + i]
-        sstops_checked[sstops[i]] = walked_routes[i]
+    for i, stop in enumerate(sstops):
+        sstops_checked[stop] = walked_routes[i]
+
+    for i, stop in enumerate(estops):
+        estops_checked[stop] = walked_routes[start_amount + i]
     
     for trip in trips:
         starting_stop, ending_stop, trip_id, agency, time_for_transit, t1 = trip
