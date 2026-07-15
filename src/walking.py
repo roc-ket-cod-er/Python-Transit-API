@@ -1,10 +1,8 @@
 import aiohttp
 import asyncio
 import orjson
-from main import WALK_SPEED_MPS
 
-Coordinate = tuple[float, float]
-Segment = tuple[Coordinate, Coordinate]
+speed_mps = 5 /3.6
 
 async def get_walking_route(session, start: tuple[float, float], end: tuple[float, float]):
     url = (
@@ -93,7 +91,7 @@ async def walk_route(start: tuple[float, float], end: tuple[float, float]) -> li
         tbr += format_step(step) + "\n"
         dist += step["distance"]
 
-    return (tbr, round(dist), round(dist) //WALK_SPEED_MPS)
+    return (tbr, round(dist), round(dist) //speed_mps)
 
 async def walk_routes(*coords: tuple[tuple[float, float], tuple[float, float]]):
     routes = await get_walking_routes(*coords)
@@ -106,7 +104,7 @@ async def walk_routes(*coords: tuple[tuple[float, float], tuple[float, float]]):
             tbr[i] += format_step(step) + "\n"
             dist[i] += step["distance"]
 
-    return list((t, round(d), round(d) // WALK_SPEED_MPS) for t, d in zip(tbr, dist))
+    return list((t, round(d), round(d) // speed_mps) for t, d in zip(tbr, dist))
 
 async def main():
     print("\n\n\n")
