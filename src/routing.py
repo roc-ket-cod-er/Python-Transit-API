@@ -14,7 +14,11 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         trips = transit.a_to_b(start, end, True)
         if len(trips) == 0:
             walk = await walking.walk_route(start, end)
-            return [[walk[0].split("\n")[:-1], walk[1]], 0]
+            time = walk[2]
+            seconds = time % 60
+            minutes = (time // 60) % 60
+            hours = (minutes // 60) % 60
+            return ([walk[0].split("\n")[:-1], walk[1], (hours, minutes, seconds)], 0)
     
     best_time = 99999999
 
@@ -95,6 +99,13 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
             best_trip = [route, distance_walked, (hours, minutes, seconds)]
             best_time = time
 
+    walk = await walking.walk_route(start, end)
+    if walk[2] < best_time:
+        time = walk[2]
+        seconds = time % 60
+        minutes = (time // 60) % 60
+        hours = (minutes // 60) % 60
+        return ([walk[0].split("\n")[:-1], walk[1], (hours, minutes, seconds)], 0)
     
     return(best_trip, (monotonic_ns()//1_000_000 - startrun_time)/1000)
 
