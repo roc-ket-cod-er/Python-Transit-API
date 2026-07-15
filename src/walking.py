@@ -1,9 +1,13 @@
-import requests
+import aiohttp
+import asyncio
 
 WALK_SPEED_KMH = 6
 WALK_SPEED_MPS = WALK_SPEED_KMH/3.6
 
-def get_walking_route(start: tuple[float, float], end: tuple[float, float]):
+Coordinate = tuple[float, float]
+Segment = tuple[Coordinate, Coordinate]
+
+async def get_walking_route(session, start: tuple[float, float], end: tuple[float, float]):
     url = (
         f"https://router.project-osrm.org/route/v1/foot/"
         f"{start[1]},{start[0]};"
@@ -15,9 +19,15 @@ def get_walking_route(start: tuple[float, float], end: tuple[float, float]):
         "steps": "true",
     }
 
-    response = requests.get(url, params=params)
-    response.raise_for_status()
-    return response.json()
+    async with session.get(url, params=params) as response:
+        return await response.json()
+
+async def get_walking_routes(*coords: tuple[tuple[float, float], tuple[float, float]]):
+
+    async with aiohttp.ClientSession() as session:
+        tasks = [get_walking_route(session, *coord) for coord in coords]
+        results = await asyncio.gather(*tasks)
+        return results
 
 def bearing_to_direction(bearing):
     directions = [
@@ -72,28 +82,50 @@ def format_step(step):
 
     return f"Continue on {street} for {distance} m."
 
-def print_route(route):
-    for step in route["routes"][0]["legs"][0]["steps"]:
+def print_route(route, which=0):
+    for step in route[which]["routes"][0]["legs"][0]["steps"]:
         print(format_step(step))
 
-def walk_route(start: tuple[float, float], end: tuple[float, float]) -> list:
-    route = get_walking_route(start, end)
+async def walk_route(start: tuple[float, float], end: tuple[float, float]) -> list:
+    route = await get_walking_routes((start, end))
     tbr = ''
     dist = 0
 
-    for step in route["routes"][0]["legs"][0]["steps"]:
+    for step in route[0]["routes"][0]["legs"][0]["steps"]:
         tbr += format_step(step) + "\n"
         dist += step["distance"]
 
     return (tbr, round(dist), round(dist) //WALK_SPEED_MPS)
 
+async def walk_routes(*coords: tuple[tuple[float, float], tuple[float, float]]):
+    routes = await get_walking_routes(coords)
+    tbr = []
+    dist = []
+    for i in range(len(routes)):
+        tbr.append("")
+        dist.append(0)
+        for step in routes[i]["routes"][0]["legs"][0]["steps"]:
+            tbr[i] += format_step(step) + "\n"
+            dist[i] += step["distance"]
 
-if __name__ == '__main__':
+    return list((tbr, round(dist), round(dist) //WALK_SPEED_MPS) for tbr, dist in zip(tbr, dist))
+
+async def main():
     print("\n\n\n")
-    print_route(
-        get_walking_route(
+    print(
+        await walk_routes(
+            (
                 (43.472871, -80.541298),
                 (43.452821, -80.498260)
+            ),
+            (
+                (43.472871, -80.541298),
+                (43.452821, -80.498260)
+            )
         ),
     )
     print("\n\n\n")
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
