@@ -1,9 +1,7 @@
 import aiohttp
 import asyncio
 import orjson
-
-WALK_SPEED_KMH = 5
-WALK_SPEED_MPS = WALK_SPEED_KMH/3.6
+from main import WALK_SPEED_MPS
 
 Coordinate = tuple[float, float]
 Segment = tuple[Coordinate, Coordinate]
