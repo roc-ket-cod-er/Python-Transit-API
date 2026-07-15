@@ -1,9 +1,8 @@
 import gtfs
-from time import monotonic_ns
 import transit
 import walking
 import asyncio
-from geopy.distance import geodesic
+from time import monotonic_ns
 
 async def route(start: tuple[float, float], end: tuple[float, float], filter: int=10):
     startrun_time = monotonic_ns() // 1_000_000
