@@ -184,7 +184,7 @@ async def load_trips(agencies=ALL):
 
             stimes.append(["load_trips", time.monotonic()])
 
-    print("loaded,", [(time.monotonic() - t[1], t[0]) for t in stimes])
+    #print("loaded,", [(time.monotonic() - t[1], t[0]) for t in stimes])
     with open("GTFS/gtfs_cache.pkl", "wb") as f:
         pickle.dump(
             (stop_trips, trip_stops, trips_route, stoptrip_time, all_stops),
@@ -195,7 +195,7 @@ async def load_save():
     global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops
     try:
         with open("GTFS/gtfs_cache.pkl", "rb") as f:
-            (stop_trips, trip_stops, trips_route, stoptrip_time, all_stops) = pickle.load(f)
+            stop_trips, trip_stops, trips_route, stoptrip_time, all_stops = pickle.load(f)
 
         '''print(
             "loaded:",
