@@ -4,21 +4,21 @@ import geopy
 import pickle
 import socket
 import asyncio
+import walking
 from gtfs import ALL
 from time import sleep
 from routing import route
 from print_color import *
-from walking import speed_mps
 from geopy.geocoders import Nominatim
 
 try:
     with open("GTFS/general.pkl", "rb") as f:
-        (speed_mps) = pickle.load(f)
+        (walking.speed_mps) = pickle.load(f)
 except FileNotFoundError:
-    speed_mps = 5  /3.6
+    walking.speed_mps = 5  /3.6
     with open("GTFS/general.pkl", "wb") as f:
         pickle.dump(
-            (speed_mps),
+            (walking.speed_mps),
             f
         )
 
@@ -73,7 +73,6 @@ async def get_end_coord(start_coord: list, error: bool =False) -> tuple:
             return await get_end_coord(start_coord, error=True)
 
 async def main(first=False) -> int:
-    global speed_mps
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
     await s.type(">>>", end='  ')
@@ -97,9 +96,9 @@ async def main(first=False) -> int:
         instructions = instructions[0]
         await s.type(f"{"\n".join(instructions[0])}\n\nTotal distance walked: {instructions[1]/1000} km", delay=0.01)
         if int(instructions[2][0]):
-            await s.type(f"\nIt should take {int(instructions[2][0])} hours and {int(instructions[2][1])} minutes.")
+            await s.type(f"\nIt should take about {int(instructions[2][0])} hours and {int(instructions[2][1])} minutes.")
         else:
-            await s.type(f"\nIt should take {int(instructions[2][1])} minutes.")
+            await s.type(f"\nIt should take about {int(instructions[2][1])} minutes.")
 
         await s.type("\n\nPress enter to restart", end="", delay=0.03)
         await s.input()
@@ -112,18 +111,24 @@ async def main(first=False) -> int:
         gtfs.update(ALL)
         return await main()
     elif inp.lower() == 'set walking speed':
-        await s.type("Please note that the walking speed set here will apply until the deletion of the GTFS folder. You may rerun this command to change it.")
-        await s.type("Set walking speed to: (km/h)")
+        await s.type(f"Please note that the walking speed set here will apply until the deletion of the GTFS folder. You may rerun this command to change it. Walking speed is currently {walking.speed_mps*3.6} km/h.", delay=0.01)
+        await s.type("Set walking speed to (km/h):", end=" ")
         try:
-            speed_mps = float(await s.input()) /3.6
-            await s.type(green(f"Success! Walking speed set to {speed_mps}."))
-            with open("GTFS/gtfs_cache.pkl", "wb") as f:
+            walking.speed_mps = float(await s.input()) /3.6
+            await s.type(green(f"Success! Walking speed set to {walking.speed_mps*3.6} km/h."))
+            with open("GTFS/general.pkl", "wb") as f:
                 pickle.dump(
-                    (speed_mps),
+                    (walking.speed_mps),
                     f
                 )
+            await s.type("Press enter to continue")
+            await s.input()
+            return await main()
         except ValueError:
-            await s.type(red(f"FAILED. Please try again. (Speed is still set to {speed_mps*3.6})"))
+            await s.type(red(f"FAILED. Please try again. (Speed is still set to {walking.speed_mps*3.6} km/h)"))
+            await s.type("Press enter to continue")
+            await s.input()
+            return await main()
     elif inp.lower() == 'help':
         await s.type(
             f"{bold(yellow("-------------------- HELP ------------------"))}\n" +
