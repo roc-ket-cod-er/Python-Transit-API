@@ -63,7 +63,7 @@ async def main(first=False) -> int:
     s.clear()
     await s.type(">>>", end='  ')
     if first:
-        load_trips()
+        await load_trips()
     inp = await s.input()
 
     if inp.lower() == "nav":
