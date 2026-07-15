@@ -34,6 +34,25 @@ def route(start: tuple[float, float], end: tuple[float, float], filter: int=10):
             filtered_trips = filtered_trips[:filter]
     
     best_time = 99999999
+
+    scoords = []
+    ecoords = []
+
+    for trip in filtered_trips:
+        scoord = trip[0][1]["coord"]
+        ecoord = trip[1][1]["coord"]
+
+        scoords.append(scoord)
+        ecoords.append(ecoord)
+
+    walk_trips = list((start, s) for s in dict.fromkeys(scoords))
+    walk_trips.append(list((e, end) for e in dict.fromkeys(ecoords)))
+
+    print(list((s, e) for s, e in zip(start, scoords)))
+    exit()
+
+    walking.walk_routes((s, e) for s, e in zip(scoords, ecoords))
+
     for trip in filtered_trips:
         starting_stop, ending_stop, trip_id, agency, time_for_transit, t1 = trip
 
