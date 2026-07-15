@@ -4,20 +4,21 @@ import geopy
 import pickle
 import socket
 import asyncio
-from time import sleep
 from gtfs import ALL
-from print_color import *
-from geopy.geocoders import Nominatim
+from time import sleep
 from routing import route
+from print_color import *
+from walking import speed_mps
+from geopy.geocoders import Nominatim
 
 try:
     with open("GTFS/general.pkl", "rb") as f:
-        (WALK_SPEED_MPS) = pickle.load(f)
+        (speed_mps) = pickle.load(f)
 except FileNotFoundError:
-    WALK_SPEED_MPS = 5  /3.6
-    with open("GTFS/gtfs_cache.pkl", "wb") as f:
+    speed_mps = 5  /3.6
+    with open("GTFS/general.pkl", "wb") as f:
         pickle.dump(
-            (WALK_SPEED_MPS),
+            (speed_mps),
             f
         )
 
@@ -72,6 +73,7 @@ async def get_end_coord(start_coord: list, error: bool =False) -> tuple:
             return await get_end_coord(start_coord, error=True)
 
 async def main(first=False) -> int:
+    global speed_mps
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
     await s.type(">>>", end='  ')
@@ -109,12 +111,26 @@ async def main(first=False) -> int:
         s.print("updating gtfs for grt")
         gtfs.update(ALL)
         return await main()
+    elif inp.lower() == 'set walking speed':
+        await s.type("Please note that the walking speed set here will apply until the deletion of the GTFS folder. You may rerun this command to change it.")
+        await s.type("Set walking speed to: (km/h)")
+        try:
+            speed_mps = float(await s.input()) /3.6
+            await s.type(green(f"Success! Walking speed set to {speed_mps}."))
+            with open("GTFS/gtfs_cache.pkl", "wb") as f:
+                pickle.dump(
+                    (speed_mps),
+                    f
+                )
+        except ValueError:
+            await s.type(red(f"FAILED. Please try again. (Speed is still set to {speed_mps*3.6})"))
     elif inp.lower() == 'help':
         await s.type(
             f"{bold(yellow("-------------------- HELP ------------------"))}\n" +
              "A list of every command:\n\n" +
              "1. Help: List every command\n" +
             f"2. Update: Update GTFS Data\n" +
+             "3. Set Walking Speed: set walking speed in KM/H" +
             bold("3. Nav: Start navigation software\n") +
              "Press enter to continue.",
             delay=0.01
