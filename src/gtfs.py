@@ -114,11 +114,13 @@ def load_stops(agencies=ALL):
             load_stops(agencies)
 
 def load_trips(agencies=ALL):
+    stimes = [["start", time.monotonic()]]
     #print("loading")
     global stop_trips, trip_stops, trips_route, stoptrip_time
     
     for agency in agencies.split("&&"):
         load_stops(agency)
+        stimes.append(["load_stops", time.monotonic()])
         stop_trips[agency]    = {}
         trip_stops[agency]    = {}
         stoptrip_time[agency] = {}
@@ -139,15 +141,14 @@ def load_trips(agencies=ALL):
                     stoptrip_time[agency][trip["trip_id"]].setdefault(trip["stop_id"], []).extend(
                         [trip["arrival_time"], trip["departure_time"]]
                     )
-
+            stimes.append(["load_gtfs", time.monotonic()])
             with open(f"GTFS/{agency}/{service}/trips.txt", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 for trip in reader:
                     trips_route.setdefault(trip["trip_id"], []).extend(
                         (trip["route_id"], trip["trip_headsign"])
                     )
-    #print("loaded")
-        
+    print("loaded,", list((time.monotonic() - t[1], t[0]) for t in stimes))
 
 
 def stops(coord, amount=70, max_dist=2000):
