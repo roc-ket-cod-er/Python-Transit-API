@@ -2,7 +2,7 @@ import aiohttp
 import asyncio
 import orjson
 
-WALK_SPEED_KMH = 6
+WALK_SPEED_KMH = 5
 WALK_SPEED_MPS = WALK_SPEED_KMH/3.6
 
 Coordinate = tuple[float, float]
@@ -27,8 +27,7 @@ async def get_walking_route(session, start: tuple[float, float], end: tuple[floa
 async def get_walking_routes(*coords: tuple[tuple[float, float], tuple[float, float]]):
     async with aiohttp.ClientSession() as session:
         tasks = [get_walking_route(session, *coord) for coord in coords]
-        results = await asyncio.gather(*tasks)
-        return results
+        return await asyncio.gather(*tasks)
 
 def bearing_to_direction(bearing):
     directions = [
