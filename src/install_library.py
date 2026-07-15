@@ -7,4 +7,4 @@ def install(package_name):
 
 # Example usage:
 if __name__ == "__main__":
-    install("aiohttp")
+    install("orjson")
