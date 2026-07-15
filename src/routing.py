@@ -85,13 +85,17 @@ def route(start: tuple[float, float], end: tuple[float, float], filter: int=10):
         if time < best_time:
             best_trip = [route, distance_walked, (hours, minutes, seconds)]
             best_time = time
-            print(best_time, time_for_transit, trip_id, sid, eid, t1)
+            #print(best_time, time_for_transit, trip_id, sid, eid, t1)
 
     #print(route)
     return(best_trip)
 
 if __name__ == '__main__':
-    print("\n\n\n\n")
+    print("\n\n\n")
     gtfs.load_trips()
-    print(route((43.452821, -80.498260), (43.479346, -80.529788)))
-    print("\n\n\n\n")
+
+    rt = route((43.452821, -80.498260), (43.479346, -80.529788))
+
+    print("\n".join(rt[0]))
+    print(rt[1:])
+    print("\n\n\n")

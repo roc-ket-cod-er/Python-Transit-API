@@ -114,41 +114,38 @@ def load_stops(agencies=ALL):
             load_stops(agencies)
 
 def load_trips(agencies=ALL):
-    global stop_trips, trip_stops, trip_route
+    global stop_trips, trip_stops, trips_route, stoptrip_time
+    
     for agency in agencies.split("&&"):
         load_stops(agency)
         stop_trips[agency]    = {}
         trip_stops[agency]    = {}
         stoptrip_time[agency] = {}
+        
         for service in list(URL[agency].keys()):
             with open(f"GTFS/{agency}/{service}/stop_times.txt", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 for trip in reader:
-                    try:
-                        stop_trips[agency][trip["stop_id"]].append(trip["trip_id"])
-                    except KeyError:
-                        stop_trips[agency][trip["stop_id"]] = [trip["trip_id"]]
-                    try:
-                        trip_stops[agency][trip["trip_id"]].insert(int(trip["stop_sequence"])-1, trip["stop_id"])
-                    except KeyError:
-                        trip_stops[agency][trip["trip_id"]] = [trip["stop_id"]]
-                    try:
-                        stoptrip_time[agency][trip["trip_id"]][trip["stop_id"]].append([trip["arrival_time"], trip["departure_time"]])
-                    except KeyError:
-                        try:
-                            stoptrip_time[agency][trip["trip_id"]][trip["stop_id"]] = [trip["arrival_time"], trip["departure_time"]]
-                        except KeyError:
-                            stoptrip_time[agency][trip["trip_id"]] = {}
-                            stoptrip_time[agency][trip["trip_id"]][trip["stop_id"]] = [trip["arrival_time"], trip["departure_time"]]
+                    stop_trips[agency].setdefault(trip["stop_id"], []).append(trip["trip_id"])
+                    
+                    if trip["trip_id"] not in trip_stops[agency]:
+                        trip_stops[agency][trip["trip_id"]] = {}
+                    
+                    if trip["trip_id"] not in stoptrip_time[agency]:
+                        stoptrip_time[agency][trip["trip_id"]] = {}
+                    
+                    trip_stops[agency][trip["trip_id"]][trip["stop_id"]] = int(trip["stop_sequence"]) - 1
+                    stoptrip_time[agency][trip["trip_id"]].setdefault(trip["stop_id"], []).extend(
+                        [trip["arrival_time"], trip["departure_time"]]
+                    )
 
             with open(f"GTFS/{agency}/{service}/trips.txt", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 for trip in reader:
-                    try:
-                        trips_route[trip["trip_id"]].append((trip["route_id"], trip["trip_headsign"]))
-                    except KeyError:
-                        trips_route[trip["trip_id"]] = (trip["route_id"], trip["trip_headsign"])
-                        
+                    trips_route.setdefault(trip["trip_id"], []).extend(
+                        (trip["route_id"], trip["trip_headsign"])
+                    )
+        
 
 
 def stops(coord, amount=70, max_dist=2000):
@@ -170,5 +167,5 @@ if __name__ == '__main__':
     print(find_gtfs_dir())
     load_trips(ALL)
     print(find_gtfs_dir())
-    #print(json.dumps(stop_trips["GRT"]['1126'], indent=2))
+    print(json.dumps(stoptrip_time["GRT"], indent=2))
     print("\n\n\n")

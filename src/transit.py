@@ -27,18 +27,19 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
             #print(trip)
             for end_stop in end_stops:
                 eid = end_stop[1]["id"]
+                #print(eid, trip_stops[stop_agency][trip])
                 try:
                     #print("e", end_stop)
+                    #print(trip_stops[stop_agency][trip])
                     if eid in trip_stops[stop_agency][trip]:
-                        start_index = trip_stops[stop_agency][trip].index(sid)
-                        stop_index = trip_stops[stop_agency][trip].index(eid)
-                        if start_index < stop_index:
+                        #print("yay")
+                        if trip_stops[stop_agency][trip][sid] < trip_stops[stop_agency][trip][eid]:
                             stime = stoptrip_time[stop_agency][trip][sid][1].split(":")
                             etime = stoptrip_time[stop_agency][trip][eid][0].split(":")
                             time_for_transit = [int(x) - int(y) for x, y in zip(etime, stime)]
                             possible_trips.append((stop, end_stop, trips_route[trip], stop_agency, time_for_transit, trip))
-                except KeyError:
-                    #print("e2", end_stop)
+                except (KeyError, ValueError) as e:
+                    #print("e2", end_stop, repr(e))
                     pass
     return possible_trips
 
