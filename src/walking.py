@@ -99,7 +99,7 @@ async def walk_route(start: tuple[float, float], end: tuple[float, float]) -> li
     return (tbr, round(dist), round(dist) //WALK_SPEED_MPS)
 
 async def walk_routes(*coords: tuple[tuple[float, float], tuple[float, float]]):
-    routes = await get_walking_routes(coords)
+    routes = await get_walking_routes(*coords)
     tbr = []
     dist = []
     for i in range(len(routes)):
