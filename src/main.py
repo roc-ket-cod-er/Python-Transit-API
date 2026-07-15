@@ -79,7 +79,8 @@ async def main(first=False) -> int:
         await s.scroll(s.nlines-8, time_per_row=0.05)
         await s.scroll(4)
 
-        instructions = route(start_coord, end_coord)
+        instructions = await route(start_coord, end_coord)
+        instructions = instructions[0]
         await s.type(f"{"\n".join(instructions[0])}\n\nTotal distance walked: {instructions[1]/1000} km")
         if int(instructions[2][0]):
             await s.type(f"\nIt should take {int(instructions[2][0])} hours and {int(instructions[2][1])} minutes.")

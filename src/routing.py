@@ -75,7 +75,15 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
             time_for_transit[0] -= 1
             time_for_transit[1] += 60
 
-        route.append(f'From "{starting_stop_name}" to "{ending_stop_name}", use route {trip_id[0]}, towards "{trip_id[1]}" (run by {agency}) (Should take about {time_for_transit[0]}:{time_for_transit[1]}m)')
+        ttime_str = f'{time_for_transit[0]}:{time_for_transit[1]}m)' if time_for_transit[0] else f'{time_for_transit[1]}m'
+
+        route.append(
+            f'From "{starting_stop_name}" to "{ending_stop_name}", ' + 
+            f'use route {trip_id[0]}, towards "{trip_id[1]}" ' +
+            f'(run by {agency}) (Should take about ' +
+            ttime_str +
+            f' (trip id, sid, eid: {t1}, {sid}, {eid})'
+        )
         time += time_for_transit[0] * 3600 + time_for_transit[1] * 60 + time_for_transit[2]
 
         walk = estops_checked[eid]
