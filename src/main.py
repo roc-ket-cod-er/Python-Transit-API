@@ -7,16 +7,20 @@ import asyncio
 import walking
 from gtfs import ALL
 from time import sleep
+from pathlib import Path
 from routing import route
 from print_color import *
 from geopy.geocoders import Nominatim
 
-try:
-    with open("GTFS/general.pkl", "rb") as f:
+general_pkl_path = Path("GTFS/general.pkl")
+
+if general_pkl_path.exists():
+    with general_pkl_path.open("rb") as f:
         (walking.speed_mps) = pickle.load(f)
-except FileNotFoundError:
+else:
     walking.speed_mps = 5  /3.6
-    with open("GTFS/general.pkl", "wb") as f:
+    general_pkl_path.parent.mkdir(parents=True, exist_ok=True)
+    with general_pkl_path.open("wb") as f:
         pickle.dump(
             (walking.speed_mps),
             f
@@ -75,9 +79,9 @@ async def get_end_coord(start_coord: list, error: bool =False) -> tuple:
 async def main(first=False) -> int:
     s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
     s.clear()
-    await s.type(">>>", end='  ')
     if first:
-        await gtfs.load_save()
+        await gtfs.load_save(s)
+    await s.type(">>>", end='  ')
     inp = await s.input()
 
     if inp.lower() == "nav":
@@ -108,7 +112,7 @@ async def main(first=False) -> int:
         if await s.input() == "n":
             return await main()
         s.print("updating gtfs for grt")
-        gtfs.update(ALL)
+        await gtfs.update(ALL)
         return await main()
     elif inp.lower() == 'set walking speed':
         await s.type(f"Please note that the walking speed set here will apply until the deletion of the GTFS folder. You may rerun this command to change it. Walking speed is currently {walking.speed_mps*3.6} km/h.", delay=0.01)
@@ -135,7 +139,7 @@ async def main(first=False) -> int:
              "A list of every command:\n\n" +
              "1. Help: List every command\n" +
             f"2. Update: Update GTFS Data\n" +
-             "3. Set Walking Speed: set walking speed in KM/H" +
+             "3. Set Walking Speed: set walking speed in KM/H\n" +
             bold("3. Nav: Start navigation software\n") +
              "Press enter to continue.",
             delay=0.01

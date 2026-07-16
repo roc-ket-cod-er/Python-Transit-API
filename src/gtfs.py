@@ -27,6 +27,8 @@ URL = {
 
 ALL = 'GRT&&GO'
 
+gtfs_cache_path = Path("GTFS/gtfs_cache.pkl")
+
 all_stops = []
 stop_trips = {}
 trip_stops = {}
@@ -56,7 +58,7 @@ def find_gtfs_dir():
     return path.isdir("GTFS")
 
 
-def update(agencies: str = ALL) -> None:
+async def update(agencies: str = ALL) -> None:
     for agency in agencies.split("&&"):
         try:
             keys = list(URL[agency].keys())
@@ -88,9 +90,9 @@ def update(agencies: str = ALL) -> None:
 
             remove(local_path + "\\data.zip")
 
-    load_trips(agencies)
+    await load_trips(agencies)
 
-def load_stops(agencies=ALL):
+async def load_stops(agencies=ALL):
     global all_stops
     for agency in agencies.split("&&"):
         try:
@@ -114,8 +116,8 @@ def load_stops(agencies=ALL):
                             print(json.dumps(stop, indent=2), agency, key)
                             time.sleep(1)
         except FileNotFoundError:
-            update(agency)
-            load_stops(agencies)
+            await update(agency)
+            await load_stops(agencies)
 
 async def load_trips(agencies=ALL):
     stimes = [["start", time.monotonic()]]
@@ -123,7 +125,7 @@ async def load_trips(agencies=ALL):
     global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops
 
     for agency in agencies.split("&&"):
-        load_stops(agency)
+        await load_stops(agency)
         stimes.append(["load_stops", time.monotonic()])
 
         stop_trips[agency] = {}
@@ -185,48 +187,33 @@ async def load_trips(agencies=ALL):
             stimes.append(["load_trips", time.monotonic()])
 
     #print("loaded,", [(time.monotonic() - t[1], t[0]) for t in stimes])
-    with open("GTFS/gtfs_cache.pkl", "wb") as f:
+    with gtfs_cache_path.open("wb") as f:
         pickle.dump(
             (stop_trips, trip_stops, trips_route, stoptrip_time, all_stops),
             f
         )
 
-async def load_save():
+async def load_save(s=None):
     global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops
-    try:
-        with open("GTFS/gtfs_cache.pkl", "rb") as f:
+
+    if s == None:
+        screen = False
+    else:
+        screen = True
+
+    if gtfs_cache_path.exists():
+        with gtfs_cache_path.open("rb") as f:
             stop_trips, trip_stops, trips_route, stoptrip_time, all_stops = pickle.load(f)
-
-        '''print(
-            "loaded:",
-            len(stop_trips),
-            len(trip_stops),
-            len(trips_route),
-            len(stoptrip_time),
-            len(all_stops)
-        )
-
-        print(stop_trips.keys())
-        print(trip_stops.keys())
-        print(stoptrip_time.keys())
-
-        agency = list(stop_trips.keys())[0]
-
-        stop = list(stop_trips[agency].keys())[0]
-
-        print(agency)
-        print(stop)
-        print(stop_trips[agency][stop][:5])'''
-    except FileNotFoundError:
+    else:
+        if screen:
+            s.clear()
+            await s.type("Please Wait: Downloading Transit Data Files...", delay=0.01)
         await load_trips()
-        '''print(
-            "loaded:",
-            len(stop_trips),
-            len(trip_stops),
-            len(trips_route),
-            len(stoptrip_time),
-            len(all_stops)
-        )'''
+        if screen:
+            await s.type("Files loaded!")
+            await asyncio.sleep(0.4)
+            s.clear()
+
 
 
 def stops(coord, amount=70, max_dist=2000):
