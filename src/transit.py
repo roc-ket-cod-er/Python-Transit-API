@@ -1,27 +1,35 @@
 import json
 import gtfs
 import time
+import asyncio
+
+tm_year = 0
+tm_mon = 1
+tm_mday = 2
+tm_hour = 3
+tm_min = 4
+tm_sec = 5
 
 def time_rn(offset: tuple=(0,0,0)):
     t = time.localtime()
 
     ctime = [
-        f"{ t["tm_hour"]+offset[0] }:{ t["tm_min"]+offset[1] }:{ t["tm_sec"]+offset[2] }",
-        f"{ t["tm_year"] }{ t["tm_mon"] }{ t["tm_mday"] }",
-        (t["tm_hour"]+offset[0], t["tm_min"]+offset[1], t["tm_sec"]+offset[2])
+        f"{ t[tm_hour]+offset[0] }:{ t[tm_min]+offset[1] }:{ t[tm_sec]+offset[2] }",
+        f"{ t[tm_year] }{ t[tm_mon] :02d}{ t[tm_mday] }",
+        (t[tm_hour]+offset[0], t[tm_min]+offset[1], t[tm_sec]+offset[2])
     ]
 
     return ctime
 
 def is_trip_valid(agency: str, trip: str, start_stop: str, runday: str="today", runtime="now", offset: tuple=(0,0,0)) -> bool:
     if runday == "today":
-        runday = time_rn[1]
+        runday = time_rn()[1]
     timing = gtfs.stoptrip_time[agency][trip]
     trip_dates = timing["run_dates"]
 
     if runday in trip_dates:
-        trip_stoptime = timing[start_stop][1]
-        if trip_stoptime > time_rn(offset):
+        trip_stoptime = tuple(map(int, timing[start_stop][1].split(":")))
+        if trip_stoptime > time_rn(offset)[2]:
             return True
     return False
 
@@ -45,7 +53,7 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
             #print("e", stop)
             pass
         for trip in trips:
-            if not is_trip_valid(stop_agency, trip):
+            if not is_trip_valid(stop_agency, trip, sid):
                 continue
             for end_stop in end_stops:
                 eid = end_stop[1]["id"]
@@ -61,9 +69,12 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
                     pass
     return possible_trips
 
-if __name__ == '__main__':
+async def main():
     print("\n\n\n")
-    gtfs.load_trips()
+    await gtfs.load_save()
     for trip in a_to_b((43.452821, -80.498260), (43.479346, -80.529788)):
         print(json.dumps(trip, indent=2), "\n\n\n")
     print("\n\n\n", flush=True)
+
+if __name__ == '__main__':
+    asyncio.run(main())
