@@ -1,8 +1,21 @@
 import json
 import gtfs
+import time
+
+def time_rn():
+    t = time.localtime()
+
+    ctime = [
+        f"{ t["tm_year"] }{ t["tm_mon"] }{ t["tm_mday"] }",
+        f"{ t["tm_hour"] }:{ t["tm_min"] }:{ t["tm_sec"] }"
+    ]
+
+    return True
+
+def is_trip_valid(trip):
+    pass
 
 def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
-    global trip_route
 
     if err:
         start_stops = gtfs.stops(start, 50, 8000)
@@ -14,7 +27,6 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
     possible_trips = []
 
     for stop in start_stops:
-        #print(stop)
         try:
             sid = stop[1]["id"]
             stop_agency = stop[1]["agency"]
@@ -23,15 +35,12 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
             #print("e", stop)
             pass
         for trip in trips:
-            #print(trip)
+            if not is_trip_valid(trip):
+                continue
             for end_stop in end_stops:
                 eid = end_stop[1]["id"]
-                #print(eid, gtfs.trip_stops[stop_agency][trip])
                 try:
-                    #print("e", end_stop)
-                    #print(gtfs.trip_stops[stop_agency][trip])
                     if eid in gtfs.trip_stops[stop_agency][trip]:
-                        #print("yay")
                         if gtfs.trip_stops[stop_agency][trip][sid] < gtfs.trip_stops[stop_agency][trip][eid]:
                             stime = gtfs.stoptrip_time[stop_agency][trip][sid][1].split(":")
                             etime = gtfs.stoptrip_time[stop_agency][trip][eid][0].split(":")
