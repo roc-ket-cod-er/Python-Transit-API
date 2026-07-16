@@ -2,18 +2,28 @@ import json
 import gtfs
 import time
 
-def time_rn():
+def time_rn(offset: tuple=(0,0,0)):
     t = time.localtime()
 
     ctime = [
+        f"{ t["tm_hour"]+offset[0] }:{ t["tm_min"]+offset[1] }:{ t["tm_sec"]+offset[2] }",
         f"{ t["tm_year"] }{ t["tm_mon"] }{ t["tm_mday"] }",
-        f"{ t["tm_hour"] }:{ t["tm_min"] }:{ t["tm_sec"] }"
+        (t["tm_hour"]+offset[0], t["tm_min"]+offset[1], t["tm_sec"]+offset[2])
     ]
 
-    return True
+    return ctime
 
-def is_trip_valid(trip):
-    pass
+def is_trip_valid(agency: str, trip: str, start_stop: str, runday: str="today", runtime="now", offset: tuple=(0,0,0)) -> bool:
+    if runday == "today":
+        runday = time_rn[1]
+    timing = gtfs.stoptrip_time[agency][trip]
+    trip_dates = timing["run_dates"]
+
+    if runday in trip_dates:
+        trip_stoptime = timing[start_stop][1]
+        if trip_stoptime > time_rn(offset):
+            return True
+    return False
 
 def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
 
@@ -35,7 +45,7 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
             #print("e", stop)
             pass
         for trip in trips:
-            if not is_trip_valid(trip):
+            if not is_trip_valid(stop_agency, trip):
                 continue
             for end_stop in end_stops:
                 eid = end_stop[1]["id"]
