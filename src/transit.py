@@ -63,6 +63,12 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False):
                         if gtfs.trip_stops[stop_agency][trip][sid] < gtfs.trip_stops[stop_agency][trip][eid]:
                             etime = gtfs.stoptrip_time[stop_agency][trip][eid][0].split(":")
                             time_for_transit = [int(x) - int(y) for x, y in zip(etime, stime)]
+                            if time_for_transit[2] < 0:
+                                time_for_transit[1] -= 1
+                                time_for_transit[2] += 60
+                            if time_for_transit[1] < 0:
+                                time_for_transit[0] -= 1
+                                time_for_transit[1] += 60
                             possible_trips.append((stop, end_stop, gtfs.trips_route[trip], stop_agency, time_for_transit, trip, stime, etime))
                 except (KeyError, ValueError) as e:
                     #print("e2", end_stop, repr(e))

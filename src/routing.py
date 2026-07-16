@@ -50,7 +50,7 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         estops_checked[stop] = walked_routes[start_amount + i]
     
     for trip in trips:
-        starting_stop, ending_stop, trip_id, agency, time_for_transit, t1 = trip
+        starting_stop, ending_stop, trip_id, agency, time_for_transit, t1, st, et = trip
 
         sid = starting_stop[1]["id"]
         eid = ending_stop[1]["id"]
@@ -66,13 +66,6 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         route.extend(walk[0].split("\n")[:-2])
         distance_walked += walk[1]
         time += walk[2]
-
-        if time_for_transit[2] < 0:
-            time_for_transit[1] -= 1
-            time_for_transit[2] += 60
-        if time_for_transit[1] < 0:
-            time_for_transit[0] -= 1
-            time_for_transit[1] += 60
 
         ttime_str = f'{time_for_transit[0]}:{time_for_transit[1]}m)' if time_for_transit[0] else f'{time_for_transit[1]}m'
 
