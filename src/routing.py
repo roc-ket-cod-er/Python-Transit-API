@@ -60,40 +60,56 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
 
         route = []
         distance_walked = 0
-        time = 0
 
         walk = sstops_checked[sid]
         route.extend(walk[0].split("\n")[:-2])
         distance_walked += walk[1]
-        time += walk[2]
+        time = walk[2]
+
+        s1 = time % 60
+        m1 = (time // 60) % 60
+        h1 = (m1 // 60) % 60
+
+        if not transit.is_trip_valid(agency, t1, sid, offset=(h1, m1, s1)):
+            continue
 
         ttime_str = f'{time_for_transit[0]}:{time_for_transit[1]}m)' if time_for_transit[0] else f'{time_for_transit[1]}m'
 
         route.append(
-            f'From "{starting_stop_name}" to "{ending_stop_name}", ' + 
+            f'From "{starting_stop_name}" to "{ending_stop_name}", ' +
             f'use route {trip_id[0]}, towards "{trip_id[1]}" ' +
             f'(run by {agency}) (Should take about ' +
             ttime_str +
-            f' (trip id, sid, eid: {t1}, {sid}, {eid})'
+            f' ({":".join(st)} to {":".join(et)})'
+            +f' (trip id, sid, eid: {t1}, {sid}, {eid}))'# ({h1}, {m1}, {s1})'
         )
         time += time_for_transit[0] * 3600 + time_for_transit[1] * 60 + time_for_transit[2]
+        et = tuple(map(int, et))
+        diftime = et[0] * 3600 + et[1] * 60 + et[2]
 
         walk = estops_checked[eid]
         route.extend(walk[0].split("\n")[:-1])
         distance_walked += walk[1]
         time += walk[2]
+        diftime += walk[2]
 
         seconds = time % 60
         minutes = (time // 60) % 60
         hours = (minutes // 60) % 60
+
+        #comment to get fastest, uncomment for fastest from now.
+        time += diftime
 
         if time < best_time:
             best_trip = [route, distance_walked, (hours, minutes, seconds)]
             best_time = time
 
     walk = await walking.walk_route(start, end)
-    if walk[2] < best_time*0.9:
-        time = walk[2]
+    time = walk[2]
+    h, m, s = (0, 0, 0)
+    #comment to get fastest time, uncomment for fastest from now.
+    h, m, s = transit.time_rn()[2]
+    if walk[2] + h * 3600 + m * 60 + s < best_time*0.9:
         seconds = time % 60
         minutes = (time // 60) % 60
         hours = (minutes // 60) % 60

@@ -59,7 +59,7 @@ class WeakDHAdapter(HTTPAdapter):
 def find_gtfs_dir():
     return path.isdir("GTFS")
 
-async def update(agencies: str = ALL) -> None:
+async def update(agencies: str = ALL, rec: bool = True) -> None:
     for agency in agencies.split("&&"):
         try:
             keys = list(URL[agency].keys())
@@ -90,11 +90,11 @@ async def update(agencies: str = ALL) -> None:
                 zip_ref.extractall(local_path)
 
             remove(local_path + "\\data.zip")
-
-    await load_trips(agencies)
+    if rec:
+        await load_trips(agencies)
 
 async def load_stops(agencies=ALL):
-    global all_stops
+    global all_stops, stimes
     for agency in agencies.split("&&"):
         try:
             for key in list(URL[agency].keys()):
@@ -117,10 +117,12 @@ async def load_stops(agencies=ALL):
                             print(json.dumps(stop, indent=2), agency, key)
                             time.sleep(1)
         except FileNotFoundError:
-            await update(agency)
-            await load_stops(agencies)
+            await update(agency, rec=False)
+            stimes.append([f"downloaded {agency} files", time.monotonic()])
+            await load_stops(agency)
 
 async def load_trips(agencies=ALL):
+    global stimes
     stimes = [["start", time.monotonic()]]
 
     global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date
@@ -169,7 +171,7 @@ async def load_trips(agencies=ALL):
                         row[departure_i]
                     )
 
-            stimes.append(["load_stop_times", time.monotonic()])
+            stimes.append([f"{agency}/{service} stop_times", time.monotonic()])
 
             # ---------- trips.txt -----------
             with open(f"GTFS/{agency}/{service}/trips.txt", encoding="utf-8-sig", newline="") as f:
@@ -185,7 +187,7 @@ async def load_trips(agencies=ALL):
                     trips_route[row[trip_id_i]] = (row[route_id_i], row[headsign_i])
                     trip_service[row[trip_id_i]] = row[service_id_i]
 
-            stimes.append(["load_trips", time.monotonic()])
+            stimes.append([f"{agency}/{service} trips", time.monotonic()])
             
             # ----------- calendar_dates.txt --------
             with open(f"GTFS/{agency}/{service}/calendar_dates.txt") as f:
@@ -199,14 +201,14 @@ async def load_trips(agencies=ALL):
                 for row in reader:
                     if row[exception_i] == '1':
                         service_date_agency.setdefault(row[service_id_i], []).append(row[date_i])
-            stimes.append(["load calendar dates", time.monotonic()])
+            stimes.append([f"{agency}/{service} calendar", time.monotonic()])
             
             for trip in stoptrip_time_agency:
                 stoptrip_time_agency[trip]["run_dates"] = service_date_agency[trip_service[trip]]
             
             stimes.append(["finished conversion", time.monotonic()])
 
-    print("loaded,", [(time.monotonic() - t[1], t[0]) for t in stimes])
+    print("loaded,", [(t[1] - stimes[0][1], t[0]) for t in stimes])
     with gtfs_cache_path.open("wb") as f:
         pickle.dump(
             (stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date),
