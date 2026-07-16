@@ -34,7 +34,6 @@ stop_trips = {}
 trip_stops = {}
 trips_route = {}
 stoptrip_time = {}
-trip_time = {}
 trip_service = {}
 service_date = {}
 
