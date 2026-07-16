@@ -34,6 +34,9 @@ stop_trips = {}
 trip_stops = {}
 trips_route = {}
 stoptrip_time = {}
+trip_time = {}
+trip_service = {}
+service_date = {}
 
 class WeakDHAdapter(HTTPAdapter):
     """HTTPAdapter that lowers OpenSSL's security level and disables
@@ -56,7 +59,6 @@ class WeakDHAdapter(HTTPAdapter):
     
 def find_gtfs_dir():
     return path.isdir("GTFS")
-
 
 async def update(agencies: str = ALL) -> None:
     for agency in agencies.split("&&"):
@@ -122,7 +124,7 @@ async def load_stops(agencies=ALL):
 async def load_trips(agencies=ALL):
     stimes = [["start", time.monotonic()]]
 
-    global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops
+    global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date
 
     for agency in agencies.split("&&"):
         await load_stops(agency)
@@ -132,24 +134,26 @@ async def load_trips(agencies=ALL):
         trip_stops[agency] = {}
         stoptrip_time[agency] = {}
         trips_route[agency] = {}
+        trip_service[agency] = {}
+        service_date[agency] = {}
 
         stop_trips_agency = stop_trips[agency]
         trip_stops_agency = trip_stops[agency]
         stoptrip_time_agency = stoptrip_time[agency]
+        service_date_agency = service_date[agency]
+
 
         for service in URL[agency]:
             # ---------- stop_times.txt ----------
-            with open(f"GTFS/{agency}/{service}/stop_times.txt",
-                      encoding="utf-8-sig", newline="") as f:
-
+            with open(f"GTFS/{agency}/{service}/stop_times.txt", encoding="utf-8-sig", newline="") as f:
                 reader = csv.reader(f)
                 header = next(reader)
 
-                trip_id_i = header.index("trip_id")
-                stop_id_i = header.index("stop_id")
-                arrival_i = header.index("arrival_time")
+                trip_id_i   = header.index("trip_id")
+                stop_id_i   = header.index("stop_id")
+                arrival_i   = header.index("arrival_time")
                 departure_i = header.index("departure_time")
-                stop_seq_i = header.index("stop_sequence")
+                stop_seq_i  = header.index("stop_sequence")
 
                 for row in reader:
                     trip_id = row[trip_id_i]
@@ -168,33 +172,50 @@ async def load_trips(agencies=ALL):
 
             stimes.append(["load_stop_times", time.monotonic()])
 
-            # ---------- trips.txt ----------
-            with open(f"GTFS/{agency}/{service}/trips.txt",
-                      encoding="utf-8-sig", newline="") as f:
-
+            # ---------- trips.txt -----------
+            with open(f"GTFS/{agency}/{service}/trips.txt", encoding="utf-8-sig", newline="") as f:
                 reader = csv.reader(f)
                 header = next(reader)
 
                 trip_id_i = header.index("trip_id")
                 route_id_i = header.index("route_id")
                 headsign_i = header.index("trip_headsign")
+                service_id_i = header.index("service_id")
 
                 for row in reader:
-                    trips_route.setdefault(row[trip_id_i], []).extend(
-                        (row[route_id_i], row[headsign_i])
-                    )
+                    trips_route[row[trip_id_i]] = (row[route_id_i], row[headsign_i])
+                    trip_service[row[trip_id_i]] = row[service_id_i]
 
             stimes.append(["load_trips", time.monotonic()])
+            
+            # ----------- calendar_dates.txt --------
+            with open(f"GTFS/{agency}/{service}/calendar_dates.txt") as f:
+                reader = csv.reader(f)
+                header = next(reader)
 
-    #print("loaded,", [(time.monotonic() - t[1], t[0]) for t in stimes])
+                date_i       = 1
+                exception_i  = 2
+                service_id_i = 0
+
+                for row in reader:
+                    if row[exception_i] == '1':
+                        service_date_agency.setdefault(row[service_id_i], []).append(row[date_i])
+            stimes.append(["load calendar dates", time.monotonic()])
+            
+            for trip in stoptrip_time_agency:
+                stoptrip_time_agency[trip]["run_dates"] = service_date_agency[trip_service[trip]]
+            
+            stimes.append(["finished conversion", time.monotonic()])
+
+    print("loaded,", [(time.monotonic() - t[1], t[0]) for t in stimes])
     with gtfs_cache_path.open("wb") as f:
         pickle.dump(
-            (stop_trips, trip_stops, trips_route, stoptrip_time, all_stops),
+            (stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date),
             f
         )
 
 async def load_save(s=None):
-    global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops
+    global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date
 
     if s == None:
         screen = False
@@ -203,7 +224,7 @@ async def load_save(s=None):
 
     if gtfs_cache_path.exists():
         with gtfs_cache_path.open("rb") as f:
-            stop_trips, trip_stops, trips_route, stoptrip_time, all_stops = pickle.load(f)
+            stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date = pickle.load(f)
     else:
         if screen:
             s.clear()
@@ -231,7 +252,8 @@ def stops(coord, amount=70, max_dist=2000):
 
 async def main():
     print("\n\n\n")
-    await load_save()
+    await load_trips()
+    print(stoptrip_time["GRT"])
     print("\n\n\n")
 
 if __name__ == '__main__':

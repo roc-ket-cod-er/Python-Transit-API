@@ -13,6 +13,7 @@ from print_color import *
 from geopy.geocoders import Nominatim
 
 general_pkl_path = Path("GTFS/general.pkl")
+gtfs_folder_path = Path("GTFS/")
 
 if general_pkl_path.exists():
     with general_pkl_path.open("rb") as f:
@@ -77,7 +78,7 @@ async def get_end_coord(start_coord: list, error: bool =False) -> tuple:
             return await get_end_coord(start_coord, error=True)
 
 async def main(first=False) -> int:
-    s.pinned_text = bold("\n-------------------- Welcome to the Transit API! --------------------\n")
+    s.pinned_text = bold("\n---------------------------------------- Welcome to the Transit API! ----------------------------------------\n")
     s.clear()
     if first:
         await gtfs.load_save(s)
@@ -108,14 +109,22 @@ async def main(first=False) -> int:
         await s.input()
         await main()
     elif inp.lower() == 'update':
-        await s.type(bold(red("WARNING: Will create a GTFS folder in this directory. Continue? (Y/n) ")), end='', delay=0.01)
-        if await s.input() == "n":
-            return await main()
-        s.print("updating gtfs for grt")
+        if not gtfs_folder_path.exists():
+            await s.type(bold(red("WARNING: Will create a GTFS folder in this directory. Continue? (Y/n) ")), end='', delay=0.01)
+            if await s.input() == "n":
+                return await main()
+            s.print("updating gtfs for grt")
+        await s.type("Updating GTFS Files...")
         await gtfs.update(ALL)
+        await s.type(green("Successfully Updated GTFS Files!")+" Press Enter to continue.")
+        await s.input()
         return await main()
     elif inp.lower() == 'set walking speed':
-        await s.type(f"Please note that the walking speed set here will apply until the deletion of the GTFS folder. You may rerun this command to change it. Walking speed is currently {walking.speed_mps*3.6} km/h.", delay=0.01)
+        await s.type(
+            f"Please note that the walking speed set here will apply until the deletion of the GTFS folder. " +
+            f"You may rerun this command to change it. Walking speed is currently {walking.speed_mps*3.6} km/h.",
+            delay=0.01
+        )
         await s.type("Set walking speed to (km/h):", end=" ")
         try:
             walking.speed_mps = float(await s.input()) /3.6
@@ -135,7 +144,7 @@ async def main(first=False) -> int:
             return await main()
     elif inp.lower() == 'help':
         await s.type(
-            f"{bold(yellow("-------------------- HELP ------------------"))}\n" +
+            f"{bold(yellow("------------------------------------- HELP -----------------------------------"))}\n" +
              "A list of every command:\n\n" +
              "1. Help: List every command\n" +
             f"2. Update: Update GTFS Data\n" +
