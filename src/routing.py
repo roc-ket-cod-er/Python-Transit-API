@@ -12,12 +12,15 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
     now_base = taaaaa.localtime()  # one clock read, reused for every trip in this route() call
     sstops_checked = {}
     estops_checked = {}
+
+    t0 = taaaaa.monotonic()
     trips = transit.a_to_b(start, end, now_base=now_base)
     if len(trips) == 0:
         trips = transit.a_to_b(start, end, True, now_base=now_base)
         if len(trips) == 0:
             walk = await walking.walk_route(start, end)
-            return ([walk[0].split("\n")[:-1], walk[1], hms(walk[2])], (monotonic_ns()//1_000_000 - startrun_time)/1000)
+            return ([walk[0].split("\n")[:-1], walk[1], hms(walk[2])], 0)
+    mt1 = taaaaa.monotonic()
     
     best_time = float("inf")
 
@@ -38,15 +41,19 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
             sstops.append(sstop["id"])
             swalk_routes.append((start, sstop["coord"]))
 
-    walk_routes = swalk_routes + ewalk_routes
+    walk_routes = swalk_routes + ewalk_routes + [(start, end)]
     walked_routes = await walking.walk_routes(*walk_routes)
     start_amount = len(swalk_routes)
+    end_amount = len(ewalk_routes)
 
     for i, stop in enumerate(sstops):
         sstops_checked[stop] = walked_routes[i]
 
     for i, stop in enumerate(estops):
         estops_checked[stop] = walked_routes[start_amount + i]
+
+    direct_walk = walked_routes[start_amount + end_amount]  # the (start, end) entry we appended above
+    t2 = taaaaa.monotonic()
     
     for trip in trips:
         starting_stop, ending_stop, trip_id, agency, time_for_transit, t1, st, et = trip
@@ -111,28 +118,32 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
             best_trip = [route_steps, distance_walked, ftime]
             best_time = time
 
-    walk = await walking.walk_route(start, end)
+    walk = direct_walk
     time = walk[2]
     h, m, s = (0, 0, 0)
     #comment to get fastest time, uncomment for fastest from now.
     h, m, s = transit.time_rn(base=now_base)[2]
     if walk[2] + h * 3600 + m * 60 + s < best_time*0.9:
-        return ([walk[0].split("\n")[:-1], walk[1], hms(time)], (monotonic_ns()//1_000_000 - startrun_time)/1000)
+        return ([walk[0].split("\n")[:-1], walk[1], hms(time)], 0)
 
+    t3 = taaaaa.monotonic()
+    print(f"[timing] trip_search={mt1-t0:.3f}s  walking_api={t2-mt1:.3f}s  scoring={t3-t2:.3f}s  total={t3-t0:.3f}s")
+ 
     return(best_trip, (monotonic_ns()//1_000_000 - startrun_time)/1000)
 
 async def main():
-    print("\n\n\n")
     await gtfs.load_save()
 
     st = taaaaa.monotonic()
     rt = await route((43.452821, -80.498260), (43.479346, -80.529788))
 
-    print("\n".join(rt[0][0]))
-    print(rt[0][1:])
-    print(rt[1])
+    #print("\n".join(rt[0][0]))
+    #print(rt[0][1:])
+    #print(rt[1])
     print(taaaaa.monotonic()-st)
+if __name__ == '__main__':
+    print("\n\n\n")
+    for i in range(20):
+        asyncio.run(main())
     print("\n\n\n")
 
-if __name__ == '__main__':
-    asyncio.run(main())
