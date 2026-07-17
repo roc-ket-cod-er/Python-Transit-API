@@ -23,10 +23,13 @@ URL = {
     },
     "GO": {
         "ALL": "https://assets.metrolinx.com/raw/upload/Documents/Metrolinx/Open%20Data/GO-GTFS.zip",
+    },
+    "TTC": {
+        "ALL": r"https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/b811ead4-6eaf-4adb-8408-d389fb5a069c/resource/c920e221-7a1c-488b-8c5b-6d8cd4e85eaf/download/Complete%20GTFS.zip"
     }
 }
 
-ALL = 'GRT&&GO'
+ALL = 'TTC&&GRT&&GO'
 
 gtfs_cache_path = Path("GTFS/gtfs_cache.pkl")
 
@@ -104,20 +107,21 @@ async def load_stops(agencies=ALL):
                     reader = csv.DictReader(f)
 
                     for stop in reader:
-                        try:
-                            all_stops.append({
-                                "agency": agency,
-                                "type": key,
-                                "id": stop["stop_id"],
-                                "name": stop["stop_name"],
-                                "coord": (
-                                    float(stop["stop_lat"]),
-                                    float(stop["stop_lon"])
-                                )
-                            })
-                        except KeyError:
-                            print(json.dumps(stop, indent=2), agency, key)
-                            time.sleep(1)
+                        if stop["location_type"] != '3':
+                            try:
+                                all_stops.append({
+                                    "agency": agency,
+                                    "type": key,
+                                    "id": stop["stop_id"],
+                                    "name": stop["stop_name"],
+                                    "coord": (
+                                        float(stop["stop_lat"]),
+                                        float(stop["stop_lon"])
+                                    )
+                                })
+                            except KeyError:
+                                print(json.dumps(stop, indent=2), agency, key)
+                                time.sleep(1)
         except FileNotFoundError:
             await update(agency, rec=False)
             stimes.append([f"downloaded {agency} files", time.monotonic()])
@@ -186,10 +190,23 @@ async def load_trips(agencies=ALL):
                 service_id_i = header.index("service_id")
 
                 for row in reader:
-                    trips_route[row[trip_id_i]] = (row[route_id_i], row[headsign_i])
-                    trip_service[row[trip_id_i]] = row[service_id_i]
+                    if row:
+                        trips_route[row[trip_id_i]] = (row[route_id_i], row[headsign_i])
+                        trip_service[row[trip_id_i]] = row[service_id_i]
 
             stimes.append([f"{agency}/{service} trips", time.monotonic()])
+            
+            # ----------- calendar.txt -------------
+            ctxt = Path(f"GTFS/{agency}/{service}/calendar.txt")
+            if ctxt.exists():
+                with ctxt.open(encoding="utf-8-sig") as f:
+                    reader = csv.reader(f)
+                    header = next(reader)
+                    
+                    for service in reader:
+                        service_date_agency[service["service_id"]] = 
+
+
             
             # ----------- calendar_dates.txt --------
             with open(f"GTFS/{agency}/{service}/calendar_dates.txt") as f:
@@ -201,12 +218,21 @@ async def load_trips(agencies=ALL):
                 service_id_i = 0
 
                 for row in reader:
-                    if row[exception_i] == '1':
-                        service_date_agency.setdefault(row[service_id_i], []).append(row[date_i])
+                    if row:
+                        if row[exception_i] == '1':
+                            service_date_agency.setdefault(row[service_id_i], []).append(row[date_i])
+                        '''elif row[exception_i] == '2':
+                            service_date_agency[row[service_id_i]].remove(row[date_i])'''
             stimes.append([f"{agency}/{service} calendar", time.monotonic()])
-            
+
+
             for trip in stoptrip_time_agency:
-                stoptrip_time_agency[trip]["run_dates"] = service_date_agency[trip_service[trip]]
+                try:
+                    stoptrip_time_agency[trip]["run_dates"] = service_date_agency[trip_service[trip]]
+                except Exception as e:
+                    print(trip)
+                    print(e)
+                    print(trip_service[trip])
             
             stimes.append(["finished conversion", time.monotonic()])
 
