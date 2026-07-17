@@ -48,7 +48,7 @@ def depart_at(agency: str, trip: str, start_stop: str, runday: str="today", runt
         except KeyError:
             return False
         if trip_stoptime > time_rn(offset)[2]:
-            depart_at_time = [(x-y) for x, y in zip(trip_stoptime, offset)]
+            depart_at_time = [(int(x)-int(y)) for x, y in zip(trip_stoptime, offset)]
             if depart_at_time[2] < 0:
                 depart_at_time[1] -= 1
                 depart_at_time[2] += 60
