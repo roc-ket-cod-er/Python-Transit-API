@@ -1,6 +1,7 @@
 import json
 import gtfs
 import time
+import bisect
 import asyncio
 from help_time import *
 
@@ -40,6 +41,8 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
     if now_base is None:
         now_base = time.localtime()  # one clock read, shared by every trip check below
 
+    now_seconds = seconds(time_rn(offset, base=now_base)[2])
+
     if err:
         start_stops = gtfs.stops(start, 50, 8000)
         end_stops = gtfs.stops(end, 50, 8000)
@@ -53,11 +56,14 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
         try:
             sid = stop[1]["id"]
             stop_agency = stop[1]["agency"]
-            trips = gtfs.stop_trips[stop_agency][sid]
+            sorted_trips = gtfs.sorted_stop_trips[stop_agency][sid]
         except KeyError:
             #print("e", stop)
             continue
-        for trip in trips:
+        
+        start_idx = bisect.bisect_left(sorted_trips, (now_seconds,))
+
+        for _, trip in sorted_trips[start_idx:]:
             if not is_trip_valid(stop_agency, trip, sid, offset=offset, now_base=now_base):
                 continue
             stime = gtfs.stoptrip_time[stop_agency][trip][sid][1].split(":")

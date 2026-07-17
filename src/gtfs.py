@@ -12,6 +12,7 @@ from pathlib import Path
 from os import remove, path
 from requests.adapters import HTTPAdapter
 from urllib3.util.ssl_ import create_urllib3_context
+from help_time import sseconds
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -31,6 +32,7 @@ gtfs_cache_path = Path("GTFS/gtfs_cache.pkl")
 
 all_stops = []
 stop_trips = {}
+sorted_stop_trips = {}  # agency -> stop_id -> [(departure_seconds, trip_id), ...] sorted ascending
 trip_stops = {}
 trips_route = {}
 stoptrip_time = {}
@@ -125,7 +127,7 @@ async def load_trips(agencies=ALL):
     global stimes
     stimes = [["start", time.monotonic()]]
 
-    global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date
+    global stop_trips, sorted_stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date
 
     for agency in agencies.split("&&"):
         await load_stops(agency)
@@ -207,22 +209,32 @@ async def load_trips(agencies=ALL):
                 stoptrip_time_agency[trip]["run_dates"] = service_date_agency[trip_service[trip]]
             
             stimes.append(["finished conversion", time.monotonic()])
+            
+        sorted_stop_trips[agency] = {
+            sid: sorted(
+                (sseconds(stoptrip_time_agency[trip][sid][1].split(":")), trip)
+                for trip in trip_list
+            )
+            for sid, trip_list in stop_trips_agency.items()
+        }
+        stimes.append([f"{agency} sorted_stop_trips", time.monotonic()])
 
     print("loaded,", [(t[1] - stimes[0][1], t[0]) for t in stimes])
     with gtfs_cache_path.open("wb") as f:
         pickle.dump(
-            (stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date),
+            (stop_trips, sorted_stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date),
             f
         )
 
 async def load_save(s=None):
-    global stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date
+    global stop_trips, sorted_stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date
 
     if s == None:
         screen = False
     else:
         screen = True
 
+    loaded_from_cache = False
     if gtfs_cache_path.exists():
         with gtfs_cache_path.open("rb") as f:
             stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date = pickle.load(f)
