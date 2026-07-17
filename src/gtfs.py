@@ -209,7 +209,7 @@ async def load_trips(agencies=ALL):
                 stoptrip_time_agency[trip]["run_dates"] = service_date_agency[trip_service[trip]]
             
             stimes.append(["finished conversion", time.monotonic()])
-            
+
         sorted_stop_trips[agency] = {
             sid: sorted(
                 (sseconds(stoptrip_time_agency[trip][sid][1].split(":")), trip)
@@ -237,7 +237,7 @@ async def load_save(s=None):
     loaded_from_cache = False
     if gtfs_cache_path.exists():
         with gtfs_cache_path.open("rb") as f:
-            stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date = pickle.load(f)
+            stop_trips, sorted_stop_trips, trip_stops, trips_route, stoptrip_time, all_stops, trip_service, service_date = pickle.load(f)
     else:
         if screen:
             s.clear()
