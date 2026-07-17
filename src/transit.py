@@ -36,6 +36,21 @@ def is_trip_valid(agency: str, trip: str, start_stop: str, runday: str="today", 
             return True
     return False
 
+def depart_at(agency: str, trip: str, start_stop: str, runday: str="today", runtime="now", offset: tuple=(0,0,0)) -> bool:
+    if runday == "today":
+        runday = time_rn()[1]
+    timing = gtfs.stoptrip_time[agency][trip]
+    trip_dates = timing["run_dates"]
+
+    if runday in trip_dates:
+        try:
+            trip_stoptime = tuple(map(int, timing[start_stop][1].split(":")))
+        except KeyError:
+            return False
+        if trip_stoptime > time_rn(offset)[2]:
+            return [(x-y) for x, y in zip(trip_stoptime, offset)]
+    return False
+
 def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offset: tuple=(0,0,0)):
 
     if err:
