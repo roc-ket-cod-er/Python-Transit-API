@@ -30,7 +30,7 @@ URL = {
     }
 }
 
-ALL = 'TTC&&GRT&&GO'
+ALL = 'GRT&&GO'
 
 gtfs_cache_path = Path("GTFS/gtfs_cache.pkl")
 
