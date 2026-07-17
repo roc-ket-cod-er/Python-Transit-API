@@ -86,7 +86,10 @@ async def main(first=False) -> int:
     inp = await s.input()
 
     if inp.lower() == "nav":
-        await s.type("This program will help you find the best route between two locations.\n")
+        if first:
+            await s.type("This program will help you find the best route between two locations.\n")
+        else:
+            s.print("This program will help you find the best route between two locations.\n")
 
         start_coord = await get_start_coord()
         end_coord = await get_end_coord(start_coord)
