@@ -100,13 +100,14 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         route_steps.extend(walk[0].split("\n")[:-1])
 
         arrive_time_h, arrive_time_m, arrive_time_s = hms(diftime)
+        ftime = hms(time)
 
         #comment to get fastest, uncomment for fastest from now.
         time = diftime
 
         if time < best_time:
             route_steps.append(bold(magenta(f"Arrive at {arrive_time_h}:{arrive_time_m:02d}")))
-            best_trip = [route_steps, distance_walked, hms(time)]
+            best_trip = [route_steps, distance_walked, ftime]
             best_time = time
 
     walk = await walking.walk_route(start, end)
