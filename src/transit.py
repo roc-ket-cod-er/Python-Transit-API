@@ -57,15 +57,15 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
         for trip in trips:
             if not is_trip_valid(stop_agency, trip, sid, offset=offset):
                 continue
-            stime = tuple(map(int, gtfs.stoptrip_time[stop_agency][trip][sid][1].split(":")))
+            stime = gtfs.stoptrip_time[stop_agency][trip][sid][1].split(":")
             for end_stop in end_stops:
                 eid = end_stop[1]["id"]
                 try:
                     if eid in gtfs.trip_stops[stop_agency][trip]:
                         if gtfs.trip_stops[stop_agency][trip][sid] < gtfs.trip_stops[stop_agency][trip][eid]:
-                            etime = tuple(map(int, gtfs.stoptrip_time[stop_agency][trip][eid][0].split(":")))
+                            etime = gtfs.stoptrip_time[stop_agency][trip][eid][0].split(":")
                             time_for_transit = hms(
-                                seconds(etime) - seconds(stime)
+                                sseconds(etime) - sseconds(stime)
                             )
                             possible_trips.append((stop, end_stop, gtfs.trips_route[trip], stop_agency, time_for_transit, trip, stime, etime))
                 except (KeyError, ValueError) as e:
