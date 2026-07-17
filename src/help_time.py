@@ -22,8 +22,8 @@ def sseconds(t: tuple[str, str, str]) -> int:
 def seconds(t: tuple[int, int, int]) -> int:
     return t[0] * 3600 + t[1] * 60 + t[2]
 
-def time_rn(offset: tuple=(0,0,0)):
-    t = time.localtime()
+def time_rn(offset: tuple=(0,0,0), base=None):
+    t = base if base is not None else time.localtime()
 
     ctime = [
         f"{ t[tm_hour]+offset[0] }:{ t[tm_min]+offset[1] }:{ t[tm_sec]+offset[2] }",

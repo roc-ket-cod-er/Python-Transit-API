@@ -1,11 +1,12 @@
 import json
 import gtfs
+import time
 import asyncio
 from help_time import *
 
-def is_trip_valid(agency: str, trip: str, start_stop: str, runday: str="today", runtime="now", offset: tuple=(0,0,0)) -> bool:
+def is_trip_valid(agency: str, trip: str, start_stop: str, runday: str="today", runtime="now", offset: tuple=(0,0,0), now_base=None) -> bool:
     if runday == "today":
-        runday = time_rn()[1]
+        runday = time_rn(base=now_base)[1]
     timing = gtfs.stoptrip_time[agency][trip]
     trip_dates = timing["run_dates"]
 
@@ -14,13 +15,13 @@ def is_trip_valid(agency: str, trip: str, start_stop: str, runday: str="today", 
             trip_stoptime = tuple(map(int, timing[start_stop][1].split(":")))
         except KeyError:
             return False
-        if trip_stoptime > time_rn(offset)[2]:
+        if trip_stoptime > time_rn(offset, base=now_base)[2]:
             return True
     return False
 
-def depart_at(agency: str, trip: str, start_stop: str, runday: str="today", runtime="now", offset: tuple=(0,0,0)) -> bool:
+def depart_at(agency: str, trip: str, start_stop: str, runday: str="today", runtime="now", offset: tuple=(0,0,0), now_base=None) -> bool:
     if runday == "today":
-        runday = time_rn()[1]
+        runday = time_rn(base=now_base)[1]
     timing = gtfs.stoptrip_time[agency][trip]
     trip_dates = timing["run_dates"]
 
@@ -29,13 +30,15 @@ def depart_at(agency: str, trip: str, start_stop: str, runday: str="today", runt
             trip_stoptime = tuple(map(int, timing[start_stop][1].split(":")))
         except KeyError:
             return False
-        if trip_stoptime > time_rn(offset)[2]:
+        if trip_stoptime > time_rn(offset, base=now_base)[2]:
             return hms(
                 seconds(trip_stoptime) - seconds(offset)
             )
     return False
 
-def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offset: tuple=(0,0,0)):
+def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offset: tuple=(0,0,0), now_base=None):
+    if now_base is None:
+        now_base = time.localtime()  # one clock read, shared by every trip check below
 
     if err:
         start_stops = gtfs.stops(start, 50, 8000)
@@ -53,9 +56,9 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
             trips = gtfs.stop_trips[stop_agency][sid]
         except KeyError:
             #print("e", stop)
-            pass
+            continue
         for trip in trips:
-            if not is_trip_valid(stop_agency, trip, sid, offset=offset):
+            if not is_trip_valid(stop_agency, trip, sid, offset=offset, now_base=now_base):
                 continue
             stime = gtfs.stoptrip_time[stop_agency][trip][sid][1].split(":")
             for end_stop in end_stops:

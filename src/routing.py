@@ -9,11 +9,12 @@ from help_time import hms, sseconds, seconds
 
 async def route(start: tuple[float, float], end: tuple[float, float], filter: int=10):
     startrun_time = monotonic_ns() // 1_000_000
+    now_base = taaaaa.localtime()  # one clock read, reused for every trip in this route() call
     sstops_checked = {}
     estops_checked = {}
-    trips = transit.a_to_b(start, end)
+    trips = transit.a_to_b(start, end, now_base=now_base)
     if len(trips) == 0:
-        trips = transit.a_to_b(start, end, True)
+        trips = transit.a_to_b(start, end, True, now_base=now_base)
         if len(trips) == 0:
             walk = await walking.walk_route(start, end)
             return ([walk[0].split("\n")[:-1], walk[1], hms(walk[2])], (monotonic_ns()//1_000_000 - startrun_time)/1000)
@@ -61,7 +62,7 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         time = walk[2]
 
         h1, m1, s1 = hms(walk[2])
-        depart_at = transit.depart_at(agency, t1, sid, offset=(h1, m1, s1))
+        depart_at = transit.depart_at(agency, t1, sid, offset=(h1, m1, s1), now_base=now_base)
 
         if not depart_at:
             continue
@@ -114,7 +115,7 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
     time = walk[2]
     h, m, s = (0, 0, 0)
     #comment to get fastest time, uncomment for fastest from now.
-    h, m, s = transit.time_rn()[2]
+    h, m, s = transit.time_rn(base=now_base)[2]
     if walk[2] + h * 3600 + m * 60 + s < best_time*0.9:
         return ([walk[0].split("\n")[:-1], walk[1], hms(time)], (monotonic_ns()//1_000_000 - startrun_time)/1000)
 
