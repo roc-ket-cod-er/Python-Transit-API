@@ -1,25 +1,7 @@
 import json
 import gtfs
-import time
 import asyncio
-
-tm_year = 0
-tm_mon = 1
-tm_mday = 2
-tm_hour = 3
-tm_min = 4
-tm_sec = 5
-
-def time_rn(offset: tuple=(0,0,0)):
-    t = time.localtime()
-
-    ctime = [
-        f"{ t[tm_hour]+offset[0] }:{ t[tm_min]+offset[1] }:{ t[tm_sec]+offset[2] }",
-        f"{ t[tm_year] }{ t[tm_mon] :02d}{ t[tm_mday] }",
-        (t[tm_hour]+offset[0], t[tm_min]+offset[1], t[tm_sec]+offset[2])
-    ]
-
-    return ctime
+from help_time import *
 
 def is_trip_valid(agency: str, trip: str, start_stop: str, runday: str="today", runtime="now", offset: tuple=(0,0,0)) -> bool:
     if runday == "today":
@@ -48,14 +30,9 @@ def depart_at(agency: str, trip: str, start_stop: str, runday: str="today", runt
         except KeyError:
             return False
         if trip_stoptime > time_rn(offset)[2]:
-            depart_at_time = [(int(x)-int(y)) for x, y in zip(trip_stoptime, offset)]
-            if depart_at_time[2] < 0:
-                depart_at_time[1] -= 1
-                depart_at_time[2] += 60
-            if depart_at_time[1] < 0:
-                depart_at_time[0] -= 1
-                depart_at_time[1] += 60
-            return depart_at_time
+            return hms(
+                seconds(trip_stoptime) - seconds(offset)
+            )
     return False
 
 def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offset: tuple=(0,0,0)):
@@ -80,20 +57,16 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
         for trip in trips:
             if not is_trip_valid(stop_agency, trip, sid, offset=offset):
                 continue
-            stime = gtfs.stoptrip_time[stop_agency][trip][sid][1].split(":")
+            stime = tuple(map(int, gtfs.stoptrip_time[stop_agency][trip][sid][1].split(":")))
             for end_stop in end_stops:
                 eid = end_stop[1]["id"]
                 try:
                     if eid in gtfs.trip_stops[stop_agency][trip]:
                         if gtfs.trip_stops[stop_agency][trip][sid] < gtfs.trip_stops[stop_agency][trip][eid]:
-                            etime = gtfs.stoptrip_time[stop_agency][trip][eid][0].split(":")
-                            time_for_transit = [int(x) - int(y) for x, y in zip(etime, stime)]
-                            if time_for_transit[2] < 0:
-                                time_for_transit[1] -= 1
-                                time_for_transit[2] += 60
-                            if time_for_transit[1] < 0:
-                                time_for_transit[0] -= 1
-                                time_for_transit[1] += 60
+                            etime = tuple(map(int, gtfs.stoptrip_time[stop_agency][trip][eid][0].split(":")))
+                            time_for_transit = hms(
+                                seconds(etime) - seconds(stime)
+                            )
                             possible_trips.append((stop, end_stop, gtfs.trips_route[trip], stop_agency, time_for_transit, trip, stime, etime))
                 except (KeyError, ValueError) as e:
                     #print("e2", end_stop, repr(e))
