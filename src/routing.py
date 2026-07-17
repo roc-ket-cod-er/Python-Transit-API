@@ -2,6 +2,7 @@ import gtfs
 import transit
 import walking
 import asyncio
+from print_color import *
 from time import monotonic_ns
 
 async def route(start: tuple[float, float], end: tuple[float, float], filter: int=10):
@@ -58,40 +59,55 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         starting_stop_name = starting_stop[1]["name"]
         ending_stop_name = ending_stop[1]["name"]
 
-        route = []
         distance_walked = 0
 
         walk = sstops_checked[sid]
-        route.extend(walk[0].split("\n")[:-2])
         distance_walked += walk[1]
         time = walk[2]
 
-        s1 = time % 60
-        m1 = (time // 60) % 60
+        s1 = walk[2] % 60
+        m1 = (walk[2] // 60) % 60
         h1 = (m1 // 60) % 60
 
-        if not transit.is_trip_valid(agency, t1, sid, offset=(h1, m1, s1)):
+        depart_at = transit.depart_at(agency, t1, sid, offset=(h1, m1, s1))
+        if not depart_at:
             continue
+
+        h, m, s = depart_at
+        route = [bold(magenta(f"Depart at {h}:{m}"))]
+
+        if m1 and not h1:   route.append(green(f"Walk for about {m1} min"))
+        elif h1:            route.append(green(f"Walk for about {h1} hr and {m1} min"))
+
+        if len(route) == 2:
+            route.extend(walk[0].split("\n")[:-2])
 
         ttime_str = f'{time_for_transit[0]}:{time_for_transit[1]}m)' if time_for_transit[0] else f'{time_for_transit[1]}m'
 
-        route.append(
+        route.append(bold(blue(
             f'From "{starting_stop_name}" to "{ending_stop_name}", ' +
-            f'use route {trip_id[0]}, towards "{trip_id[1]}" ' +
+            f'use route {trip_id[0]}, towards "{trip_id[1]}" ')) +
             f'(run by {agency}) (Should take about ' +
             ttime_str +
             f' ({":".join(st)} to {":".join(et)})'
-            +f' (trip id, sid, eid: {t1}, {sid}, {eid}))'# ({h1}, {m1}, {s1})'
+            #+f' (trip id, sid, eid: {t1}, {sid}, {eid}))'# ({h1}, {m1}, {s1})'
         )
         time += time_for_transit[0] * 3600 + time_for_transit[1] * 60 + time_for_transit[2]
         et = tuple(map(int, et))
         diftime = et[0] * 3600 + et[1] * 60 + et[2]
 
         walk = estops_checked[eid]
-        route.extend(walk[0].split("\n")[:-1])
         distance_walked += walk[1]
         time += walk[2]
         diftime += walk[2]
+
+        s2 = walk[2] % 60
+        m2 = (walk[2] // 60) % 60
+        h2 = (m1 // 60) % 60
+
+        if m1 and not h1:   route.append(green(f"Walk for about {m2} min"))
+        elif h1:            route.append(green(f"Walk for about {h2} hr and {m2} min"))
+        route.extend(walk[0].split("\n")[:-1])
 
         seconds = time % 60
         minutes = (time // 60) % 60
