@@ -6,3 +6,4 @@ src/__pychache__/
 src/secrets.py
 src/install_library.py
 *.pkl
+main.exe
