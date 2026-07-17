@@ -10,6 +10,7 @@ import asyncio
 import requests
 from pathlib import Path
 from os import remove, path
+from datetime import datetime, timedelta
 from requests.adapters import HTTPAdapter
 from urllib3.util.ssl_ import create_urllib3_context
 from help_time import sseconds
@@ -203,8 +204,36 @@ async def load_trips(agencies=ALL):
                     reader = csv.reader(f)
                     header = next(reader)
                     
-                    for service in reader:
-                        service_date_agency[service["service_id"]] = 
+                    for row in reader:
+                        if not row:
+                            continue
+
+                        service_id = row[0]
+
+                        weekdays = [
+                            int(row[1]),  # monday
+                            int(row[2]),
+                            int(row[3]),
+                            int(row[4]),
+                            int(row[5]),
+                            int(row[6]),
+                            int(row[7])   # sunday
+                        ]
+
+                        start = datetime.strptime(row[8], "%Y%m%d")
+                        end = datetime.strptime(row[9], "%Y%m%d")
+
+                        dates = []
+
+                        current = start
+
+                        while current <= end:
+                            if weekdays[current.weekday()]:
+                                dates.append(current.strftime("%Y%m%d"))
+
+                            current += timedelta(days=1)
+
+                        service_date_agency[service_id] = dates
 
 
             
