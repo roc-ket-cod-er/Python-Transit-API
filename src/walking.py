@@ -73,7 +73,10 @@ def format_step(step):
         else:
             return f"Turn {modifier} and continue for {distance} m."
 
-    return f"Continue on {street} for {distance} m."
+    if street:
+        return f"Continue on {street} for {distance} m."
+    else:
+        return f"Continue for {distance} m."
 
 def print_route(route, which=0):
     for step in route[which]["routes"][0]["legs"][0]["steps"]:
