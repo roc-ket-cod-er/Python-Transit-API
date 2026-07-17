@@ -4,6 +4,7 @@ import walking
 import asyncio
 from print_color import *
 from time import monotonic_ns
+from help_time import hms
 
 async def route(start: tuple[float, float], end: tuple[float, float], filter: int=10):
     startrun_time = monotonic_ns() // 1_000_000
@@ -14,10 +15,7 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         trips = transit.a_to_b(start, end, True)
         if len(trips) == 0:
             walk = await walking.walk_route(start, end)
-            time = walk[2]
-            seconds = time % 60
-            minutes = (time // 60) % 60
-            hours = (minutes // 60) % 60
+            hours, minutes, seconds = hms(walk[2])
             return ([walk[0].split("\n")[:-1], walk[1], (hours, minutes, seconds)], 0)
     
     best_time = 99999999
@@ -65,16 +63,14 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         distance_walked += walk[1]
         time = walk[2]
 
-        s1 = walk[2] % 60
-        m1 = (walk[2] // 60) % 60
-        h1 = (m1 // 60) % 60
-
+        h1, m1, s1 = hms(walk[2])
         depart_at = transit.depart_at(agency, t1, sid, offset=(h1, m1, s1))
+
         if not depart_at:
             continue
 
         h, m, s = depart_at
-        route = [bold(magenta(f"Depart at {h}:{m}"))]
+        route = [bold(magenta(f"Depart at {h:02d}:{m:02d}"))]
 
         if m1 and not h1:   route.append(green(f"Walk for about {int(m1)} min"))
         elif h1:            route.append(green(f"Walk for about {int(h1)} hr and {int(m1)} min"))
@@ -92,31 +88,34 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
             f', {":".join(st)} to {":".join(et)})'
             #+f' (trip id, sid, eid: {t1}, {sid}, {eid})'# ({h1}, {m1}, {s1})'
         )
-        time += time_for_transit[0] * 3600 + time_for_transit[1] * 60 + time_for_transit[2]
+        time += seconds(time_for_transit)
         et = tuple(map(int, et))
-        diftime = et[0] * 3600 + et[1] * 60 + et[2]
+        diftime = seconds(et)
 
         walk = estops_checked[eid]
         distance_walked += walk[1]
         time += walk[2]
         diftime += walk[2]
 
-        s2 = walk[2] % 60
-        m2 = (walk[2] // 60) % 60
-        h2 = (m1 // 60) % 60
+        h2, m2, s2 = hms(walk[2])
 
-        if m1 and not h1:   route.append(green(f"Walk for about {int(m2)} min"))
-        elif h1:            route.append(green(f"Walk for about {int(h2)} hr and {int(m2)} min"))
+        if m2 and not h2:   route.append(green(f"Walk for about {int(m2)} min"))
+        elif h2:            route.append(green(f"Walk for about {int(h2)} hr and {int(m2):02d} min"))
         route.extend(walk[0].split("\n")[:-1])
 
         seconds = time % 60
         minutes = (time // 60) % 60
         hours = (minutes // 60) % 60
 
+        arrive_time_s = int(diftime)             % 60
+        arrive_time_m = int(diftime // 60)       % 60
+        arrive_time_h = int(arrive_time_m // 60) % 60
+
         #comment to get fastest, uncomment for fastest from now.
-        time += diftime
+        time = diftime
 
         if time < best_time:
+            route.append(bold(magenta(f"Arrive at {arrive_time_h}:{arrive_time_m:02d}")))
             best_trip = [route, distance_walked, (hours, minutes, seconds)]
             best_time = time
 
@@ -130,7 +129,7 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         minutes = (time // 60) % 60
         hours = (minutes // 60) % 60
         return ([walk[0].split("\n")[:-1], walk[1], (hours, minutes, seconds)], 0)
-    
+
     return(best_trip, (monotonic_ns()//1_000_000 - startrun_time)/1000)
 
 async def main():
