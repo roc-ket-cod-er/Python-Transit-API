@@ -8,6 +8,7 @@ tm_min = 4
 tm_sec = 5
 
 def hms(seconds: int) -> tuple[int, int, int]:
+    seconds = int(seconds)
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
     seconds = seconds % 60
