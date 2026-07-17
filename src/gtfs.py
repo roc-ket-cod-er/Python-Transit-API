@@ -234,8 +234,6 @@ async def load_trips(agencies=ALL):
                             current += timedelta(days=1)
 
                         service_date_agency[service_id] = dates
-
-
             
             # ----------- calendar_dates.txt --------
             with open(f"GTFS/{agency}/{service}/calendar_dates.txt") as f:
