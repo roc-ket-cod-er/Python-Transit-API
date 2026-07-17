@@ -2,6 +2,7 @@ import ssl
 import csv
 import json
 import time
+import math
 import pickle
 import urllib3
 import zipfile
@@ -9,7 +10,6 @@ import asyncio
 import requests
 from pathlib import Path
 from os import remove, path
-from geopy.distance import geodesic
 from requests.adapters import HTTPAdapter
 from urllib3.util.ssl_ import create_urllib3_context
 
@@ -238,15 +238,32 @@ async def load_save(s=None):
 
 
 
+_EARTH_RADIUS_M = 6_371_000
+
+def _haversine_m(lat1, lon1, lat2, lon2):
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return 2 * _EARTH_RADIUS_M * math.asin(math.sqrt(a))
+
 def stops(coord, amount=70, max_dist=2000):
+    lat0, lon0 = coord
+    lat_margin = max_dist / 111_320
+    lon_margin = max_dist / (111_320 * max(math.cos(math.radians(lat0)), 0.01))
+    lat_min, lat_max = lat0 - lat_margin, lat0 + lat_margin
+    lon_min, lon_max = lon0 - lon_margin, lon0 + lon_margin
+
     results = []
     for stop in all_stops:
-        distance = geodesic(coord, stop["coord"]).meters
+        slat, slon = stop["coord"]
+        if slat < lat_min or slat > lat_max or slon < lon_min or slon > lon_max:
+            continue
+        distance = _haversine_m(lat0, lon0, slat, slon)
         if distance > max_dist:
             continue
-        results.append(
-            (round(distance, 1), stop)
-        )
+        results.append((round(distance, 1), stop))
+
     results.sort(key=lambda x: x[0])
     #print(len(results), results[:amount])
     return results[:amount]
