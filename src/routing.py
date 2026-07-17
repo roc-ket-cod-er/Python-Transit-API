@@ -76,8 +76,8 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         h, m, s = depart_at
         route = [bold(magenta(f"Depart at {h}:{m}"))]
 
-        if m1 and not h1:   route.append(green(f"Walk for about {m1} min"))
-        elif h1:            route.append(green(f"Walk for about {h1} hr and {m1} min"))
+        if m1 and not h1:   route.append(green(f"Walk for about {int(m1)} min"))
+        elif h1:            route.append(green(f"Walk for about {int(h1)} hr and {int(m1)} min"))
 
         if len(route) == 2:
             route.extend(walk[0].split("\n")[:-2])
@@ -89,8 +89,8 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
             f'use route {trip_id[0]}, towards "{trip_id[1]}" ')) +
             f'(run by {agency}) (Should take about ' +
             ttime_str +
-            f' ({":".join(st)} to {":".join(et)})'
-            #+f' (trip id, sid, eid: {t1}, {sid}, {eid}))'# ({h1}, {m1}, {s1})'
+            f', {":".join(st)} to {":".join(et)})'
+            #+f' (trip id, sid, eid: {t1}, {sid}, {eid})'# ({h1}, {m1}, {s1})'
         )
         time += time_for_transit[0] * 3600 + time_for_transit[1] * 60 + time_for_transit[2]
         et = tuple(map(int, et))
@@ -105,8 +105,8 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         m2 = (walk[2] // 60) % 60
         h2 = (m1 // 60) % 60
 
-        if m1 and not h1:   route.append(green(f"Walk for about {m2} min"))
-        elif h1:            route.append(green(f"Walk for about {h2} hr and {m2} min"))
+        if m1 and not h1:   route.append(green(f"Walk for about {int(m2)} min"))
+        elif h1:            route.append(green(f"Walk for about {int(h2)} hr and {int(m2)} min"))
         route.extend(walk[0].split("\n")[:-1])
 
         seconds = time % 60
