@@ -10,9 +10,22 @@ RED = '\033[0;31m'
 BLUE = '\033[0;34m'	
 GREEN = '\033[0;32m'
 YELLOW = '\033[0;33m'
+MAGENTA = '\033[0;35m'
+
 NORMAL = 'normal'
 
 BOLD = '\033[1;37m'
+
+def magenta(*strings, end='', bold=False):
+    tbr = MAGENTA
+    if bold: tbr[2] = 1
+    for string in strings:
+        tbr += str(string)
+        if string != strings[-1]:
+            tbr += ' '
+    tbr += NORMAL_TEXT
+    tbr += end
+    return tbr
 
 def red(*strings, end='', bold=False):
     tbr = RED
