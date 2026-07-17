@@ -14,6 +14,11 @@ def hms(seconds: int) -> tuple[int, int, int]:
     seconds = seconds % 60
     return hours, minutes, seconds
 
+def sseconds(t: tuple[str, str, str]) -> int:
+    t = tuple(map(int, t))
+    return t[0] * 3600 + t[1] * 60 + t[2]
+
+
 def seconds(t: tuple[int, int, int]) -> int:
     return t[0] * 3600 + t[1] * 60 + t[2]
 
