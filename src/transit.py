@@ -48,7 +48,14 @@ def depart_at(agency: str, trip: str, start_stop: str, runday: str="today", runt
         except KeyError:
             return False
         if trip_stoptime > time_rn(offset)[2]:
-            return [(x-y) for x, y in zip(trip_stoptime, offset)]
+            depart_at_time = [(x-y) for x, y in zip(trip_stoptime, offset)]
+            if depart_at_time[2] < 0:
+                depart_at_time[1] -= 1
+                depart_at_time[2] += 60
+            if depart_at_time[1] < 0:
+                depart_at_time[0] -= 1
+                depart_at_time[1] += 60
+            return depart_at_time
     return False
 
 def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offset: tuple=(0,0,0)):
