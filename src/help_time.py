@@ -1,4 +1,5 @@
 import time
+from datetime import date, timedelta
 
 tm_year = 0
 tm_mon = 1
@@ -32,3 +33,17 @@ def time_rn(offset: tuple=(0,0,0), base=None):
     ]
 
     return ctime
+
+def wdays_dates(wdays: tuple[str, str, str, str, str, str, str], st: str, e: str) -> list[str]:
+    stdate = date(int(st[:4]), int(st[4:6]), int(st[6:]))
+    edate  = date(int( e[:4]), int( e[4:6]), int( e[6:]))
+
+    stwday = stdate.weekday()
+    ewday  =  edate.weekday()
+
+    ddays = (edate-stdate).days
+
+    days = [st]
+
+    for i in range(ddays+1):
+        st.append()
