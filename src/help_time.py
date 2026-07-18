@@ -32,3 +32,8 @@ def time_rn(offset: tuple=(0,0,0), base=None):
     ]
 
     return ctime
+
+def offset(t: tuple[str, str, str], o: tuple[str, str, str]) -> tuple[str, str, str]:
+    return hms(
+        seconds(t) + seconds(o)
+    )
