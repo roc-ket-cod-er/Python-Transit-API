@@ -312,7 +312,7 @@ def _haversine_m(lat1, lon1, lat2, lon2):
     a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
     return 2 * _EARTH_RADIUS_M * math.asin(math.sqrt(a))
 
-def stops(coord, amount=70, max_dist=2000):
+def stops(coord, amount=50, max_dist=2000):
     lat0, lon0 = coord
     lat_margin = max_dist / 111_320
     lon_margin = max_dist / (111_320 * max(math.cos(math.radians(lat0)), 0.01))
