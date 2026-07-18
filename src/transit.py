@@ -86,8 +86,12 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
                     pass
     return possible_trips
 
-def abc(start: tuple[float, float], end: tuple[float, float], err=False, offset: tuple=(0,0,0), now_base=None):
+def a_to_b_with_transfers(start: tuple[float, float], end: tuple[float, float], offset: tuple=(0,0,0), now_base=None):
+    global start_stops, end_stops
     
+    trips = a_to_b(start, end, offset=offset, now_base=now_base)
+
+    trips.sort(key= lambda x: seconds(x[4]))
 
 
 def get_last_startend_stops():
