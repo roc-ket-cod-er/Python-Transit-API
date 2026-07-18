@@ -44,8 +44,8 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
     now_seconds = seconds(time_rn(offset, base=now_base)[2])
 
     if err:
-        start_stops = gtfs.stops(start, 50, 8000)
-        end_stops = gtfs.stops(end, 50, 8000)
+        start_stops = gtfs.stops(start, 150, 8000)
+        end_stops = gtfs.stops(end, 150, 8000)
     else:
         start_stops = gtfs.stops(start)
         end_stops = gtfs.stops(end)
