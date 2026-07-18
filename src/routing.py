@@ -127,7 +127,7 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
         return ([walk[0].split("\n")[:-1], walk[1], hms(time)], 0)
 
     t3 = taaaaa.monotonic()
-    #print(f"[timing] trip_search={mt1-t0:.3f}s  walking_api={t2-mt1:.3f}s  scoring={t3-t2:.3f}s  total={t3-t0:.3f}s")
+    print(f"[timing] trip_search={mt1-t0:.3f}s  walking_api={t2-mt1:.3f}s  scoring={t3-t2:.3f}s  total={t3-t0:.3f}s")
  
     return(best_trip, (monotonic_ns()//1_000_000 - startrun_time)/1000)
 
