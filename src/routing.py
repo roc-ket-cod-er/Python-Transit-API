@@ -24,13 +24,12 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
     
     best_time = float("inf")
 
-    sstops = []
-    estops = []
+    sstops, estops = transit.get_last_startend_stops()
     walk_routes = []
     swalk_routes = []
     ewalk_routes = []
 
-    for trip in trips:
+    '''for trip in trips:
         sstop = trip[0][1]
         estop = trip[1][1]
 
@@ -39,7 +38,13 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
             ewalk_routes.append((estop["coord"], end))
         if sstop["id"] not in sstops:
             sstops.append(sstop["id"])
-            swalk_routes.append((start, sstop["coord"]))
+            swalk_routes.append((start, sstop["coord"]))'''
+    
+    for stop in sstops:
+        swalk_routes.append((start, stop[1]["coord"]))
+    for stop in estops:
+        ewalk_routes.append((stop[1]["coord"], end))
+        
 
     walk_routes = swalk_routes + ewalk_routes + [(start, end)]
     walked_routes = await walking.walk_routes(*walk_routes)
@@ -47,10 +52,10 @@ async def route(start: tuple[float, float], end: tuple[float, float], filter: in
     end_amount = len(ewalk_routes)
 
     for i, stop in enumerate(sstops):
-        sstops_checked[stop] = walked_routes[i]
+        sstops_checked[stop[1]["id"]] = walked_routes[i]
 
     for i, stop in enumerate(estops):
-        estops_checked[stop] = walked_routes[start_amount + i]
+        estops_checked[stop[1]["id"]] = walked_routes[start_amount + i]
 
     direct_walk = walked_routes[start_amount + end_amount]  # the (start, end) entry we appended above
     t2 = taaaaa.monotonic()
