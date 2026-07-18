@@ -88,10 +88,25 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
 
 def a_to_b_with_transfers(start: tuple[float, float], end: tuple[float, float], offset: tuple=(0,0,0), now_base=None):
     global start_stops, end_stops
-    
-    trips = a_to_b(start, end, offset=offset, now_base=now_base)
+    if now_base is None:
+        now_base = time.localtime()
 
-    trips.sort(key= lambda x: seconds(x[4]))
+    now_seconds = seconds(time_rn(offset, base=now_base)[2])
+    start_stops = gtfs.stops(start)
+
+    for stop in start_stops:
+        try:
+            sid     = stop["id"]
+            sagency = stop["agency"]
+            sorted_trips = gtfs.sorted_stop_trips[sagency][sid]
+        except KeyError:
+            continue
+
+        start_idx = bisect.bisect_left(sorted_trips, (now_seconds,))
+        for _, trip in sorted_trips[start_idx:]:
+            
+
+    
 
 
 def get_last_startend_stops():
