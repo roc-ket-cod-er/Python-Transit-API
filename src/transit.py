@@ -86,6 +86,10 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
                     pass
     return possible_trips
 
+def abc(start: tuple[float, float], end: tuple[float, float], err=False, offset: tuple=(0,0,0), now_base=None):
+    
+
+
 def get_last_startend_stops():
     return start_stops, end_stops
 
