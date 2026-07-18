@@ -5,6 +5,9 @@ import bisect
 import asyncio
 from help_time import *
 
+start_stops = []
+end_stops = []
+
 def is_trip_valid(agency: str, trip: str, start_stop: str, runday: str="today", runtime="now", offset: tuple=(0,0,0), now_base=None) -> bool:
     if runday == "today":
         runday = time_rn(base=now_base)[1]
@@ -38,6 +41,7 @@ def depart_at(agency: str, trip: str, start_stop: str, runday: str="today", runt
     return False
 
 def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offset: tuple=(0,0,0), now_base=None):
+    global start_stops, end_stops
     if now_base is None:
         now_base = time.localtime()  # one clock read, shared by every trip check below
 
@@ -81,6 +85,9 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
                     #print("e2", end_stop, repr(e))
                     pass
     return possible_trips
+
+def get_last_startend_stops():
+    return start_stops, end_stops
 
 async def main():
     print("\n\n\n")
