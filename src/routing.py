@@ -7,61 +7,56 @@ from print_color import *
 from time import monotonic_ns
 from help_time import hms, sseconds, seconds
 
-async def route(start: tuple[float, float], end: tuple[float, float], walking: bool=True):
+async def route(start: tuple[float, float], end: tuple[float, float], filter: int=10):
     startrun_time = monotonic_ns() // 1_000_000
     now_base = taaaaa.localtime()  # one clock read, reused for every trip in this route() call
     sstops_checked = {}
     estops_checked = {}
 
     t0 = taaaaa.monotonic()
-    best_time = float("inf")
     trips = transit.a_to_b(start, end, now_base=now_base)
-    mt1 = taaaaa.monotonic()
     if len(trips) == 0:
-        return [False]
-
-    if walking:
+        trips = transit.a_to_b(start, end, True, now_base=now_base)
         if len(trips) == 0:
-            trips = transit.a_to_b(start, end, True, now_base=now_base)
-            if len(trips) == 0:
-                walk = await walking.walk_route(start, end)
-                return ([walk[0].split("\n")[:-1], walk[1], hms(walk[2])], 0)
+            walk = await walking.walk_route(start, end)
+            return ([walk[0].split("\n")[:-1], walk[1], hms(walk[2])], 0)
+    mt1 = taaaaa.monotonic()
     
-        sstops, estops = transit.get_last_startend_stops()
-        walk_routes = []
-        swalk_routes = []
-        ewalk_routes = []
+    best_time = float("inf")
 
-        '''for trip in trips:
-            sstop = trip[0][1]
-            estop = trip[1][1]
+    sstops, estops = transit.get_last_startend_stops()
+    walk_routes = []
+    swalk_routes = []
+    ewalk_routes = []
 
-            if estop["id"] not in estops:
-                estops.append(estop["id"])
-                ewalk_routes.append((estop["coord"], end))
-            if sstop["id"] not in sstops:
-                sstops.append(sstop["id"])
-                swalk_routes.append((start, sstop["coord"]))'''
-        
-        for stop in sstops:
-            swalk_routes.append((start, stop[1]["coord"]))
-        for stop in estops:
-            ewalk_routes.append((stop[1]["coord"], end))
-            
+    '''for trip in trips:
+        sstop = trip[0][1]
+        estop = trip[1][1]
 
-        walk_routes = swalk_routes + ewalk_routes + [(start, end)]
-        walked_routes = await walking.walk_routes(*walk_routes)
-        start_amount = len(swalk_routes)
-        end_amount = len(ewalk_routes)
+        if estop["id"] not in estops:
+            estops.append(estop["id"])
+            ewalk_routes.append((estop["coord"], end))
+        if sstop["id"] not in sstops:
+            sstops.append(sstop["id"])
+            swalk_routes.append((start, sstop["coord"]))'''
 
-        for i, stop in enumerate(sstops):
-            sstops_checked[stop[1]["id"]] = walked_routes[i]
+    for stop in sstops:
+        swalk_routes.append((start, stop[1]["coord"]))
+    for stop in estops:
+        ewalk_routes.append((stop[1]["coord"], end))
 
-        for i, stop in enumerate(estops):
-            estops_checked[stop[1]["id"]] = walked_routes[start_amount + i]
+    walk_routes = swalk_routes + ewalk_routes + [(start, end)]
+    walked_routes = await walking.walk_routes(*walk_routes)
+    start_amount = len(swalk_routes)
+    end_amount = len(ewalk_routes)
 
-        direct_walk = walked_routes[start_amount + end_amount]  # the (start, end) entry we appended above
+    for i, stop in enumerate(sstops):
+        sstops_checked[stop[1]["id"]] = walked_routes[i]
 
+    for i, stop in enumerate(estops):
+        estops_checked[stop[1]["id"]] = walked_routes[start_amount + i]
+
+    direct_walk = walked_routes[start_amount + end_amount]  # the (start, end) entry we appended above
     t2 = taaaaa.monotonic()
     
     for trip in trips:
