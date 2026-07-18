@@ -6,7 +6,7 @@ speed_mps = 5 /3.6
 
 async def get_walking_route(session, start: tuple[float, float], end: tuple[float, float]):
     url = (
-        f"https://router.project-osrm.org/route/v1/foot/"
+        f"https://host-transit-page.hackclub.app/route/v1/foot/"
         f"{start[1]},{start[0]};"
         f"{end[1]},{end[0]}"
     )
@@ -111,12 +111,8 @@ async def main():
     print(
         await walk_routes(
             (
-                (43.472871, -80.541298),
-                (43.452821, -80.498260)
-            ),
-            (
-                (43.472871, -80.541298),
-                (43.452821, -80.498260)
+                (43.410005, -80.392930),
+                (43.644708, -79.380146)
             )
         ),
     )
