@@ -86,13 +86,51 @@ def a_to_b(start: tuple[float, float], end: tuple[float, float], err=False, offs
                     pass
     return possible_trips
 
+def b_to_c(start: tuple[float, float], endstops: list, ctrip, best=-1, offset: tuple=(0,0,0), now_base=None,):
+    if now_base is None:
+        now_base = time.localtime()
+
+    now_seconds = seconds(time_rn(offset, base=now_base)[2])
+    start_stops = gtfs.stops(start, max_dist=50)
+    possible = []
+
+    for stop in start_stops:
+        try:
+            sid = stop[1]["id"]
+            stop_agency = stop[1]["agency"]
+            sorted_trips = gtfs.sorted_stop_trips[stop_agency][sid]
+        except KeyError:
+            #print("e", stop)
+            continue
+        start_idx = bisect.bisect_left(sorted_trips, (now_seconds,))
+
+        for _, trip in sorted_trips[start_idx:]:
+            if trip == ctrip:
+                continue
+            if not is_trip_valid(stop_agency, trip, sid, offset=offset, now_base=now_base):
+                continue
+            eid = end_stops[1]["id"]
+            try:
+                if eid in gtfs.trip_stops[stop_agency][trip]:
+                    etime = gtfs.stoptrip_time[stop_agency][trip][eid][0].split(":")
+                    if best == -1 or sseconds(etime) < best:
+                        btrip = trip
+                        best = sseconds(etime)
+            except (KeyError, ValueError) as e:
+                pass
+
+    return best, btrip
+
+
 def a_to_b_with_transfers(start: tuple[float, float], end: tuple[float, float], offset: tuple=(0,0,0), now_base=None):
     global start_stops, end_stops
+    best = float("inf")
     if now_base is None:
         now_base = time.localtime()
 
     now_seconds = seconds(time_rn(offset, base=now_base)[2])
     start_stops = gtfs.stops(start)
+    end_stops = gtfs.stops(end)
 
     for stop in start_stops:
         try:
@@ -103,8 +141,13 @@ def a_to_b_with_transfers(start: tuple[float, float], end: tuple[float, float], 
             continue
 
         start_idx = bisect.bisect_left(sorted_trips, (now_seconds,))
-        for _, trip in sorted_trips[start_idx:]:
+        for time_s, trip in sorted_trips[start_idx:]:
+            if not is_trip_valid(sagency, trip, sid, offset=offset, now_base=now_base):
+                continue
             
+            for stop in gtfs.trip_stops[sagency][trip]:
+                a_time = tuple(gtfs.stoptrip_time[sagency][trip][stop][0].split(":"))
+                best, b_to_c(stop[1]["coord"], end_stops, trip, best, offset=a_time)
 
     
 
