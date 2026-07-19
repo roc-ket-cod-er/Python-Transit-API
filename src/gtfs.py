@@ -43,6 +43,8 @@ stoptrip_time = {}
 trip_service = {}
 service_date = {}
 
+stop_coords = {}
+
 class WeakDHAdapter(HTTPAdapter):
     """HTTPAdapter that lowers OpenSSL's security level and disables
     certificate verification entirely — most permissive TLS possible."""
@@ -313,6 +315,7 @@ def _haversine_m(lat1, lon1, lat2, lon2):
     return 2 * _EARTH_RADIUS_M * math.asin(math.sqrt(a))
 
 def stops(coord, amount=50, max_dist=2000):
+    global stop_coords
     lat0, lon0 = coord
     lat_margin = max_dist / 111_320
     lon_margin = max_dist / (111_320 * max(math.cos(math.radians(lat0)), 0.01))
@@ -328,6 +331,9 @@ def stops(coord, amount=50, max_dist=2000):
         if distance > max_dist:
             continue
         results.append((round(distance, 1), stop))
+        if stop["agency"] not in stop_coords:
+            stop_coords[stop["agency"]] = {}
+        stop_coords[stop["agency"]][stop["id"]] = stop["coord"]
 
     results.sort(key=lambda x: x[0])
     #print(len(results), results[:amount])
