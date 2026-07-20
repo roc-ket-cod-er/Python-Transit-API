@@ -18,7 +18,7 @@ Here's a sample run.
 
 Firstly, once the files have been downloaded, you will be presented with the console.
 
-![A terminal window with a dark background displaying the Transit API welcome screen. The header shows a decorative banner with the text Welcome to the Transit API! centered at the top. Below the header, a command prompt indicator (>>>) appears on the left side with a blinking cursor ready for user input. The overall tone is professional and welcoming, inviting users to begin interacting with the transit navigation software.](image.png)
+![A terminal window with a dark background displaying the Transit API welcome screen. The header shows a decorative banner with the text Welcome to the Transit API! centered at the top. Below the header, a command prompt indicator (>>>) appears on the left side with a blinking cursor ready for user input. The overall tone is professional and welcoming, inviting users to begin interacting with the transit navigation software.](assets/image.png)
 
 From there, you may enter a command. I encourage you to try it yourself, but if you'd rather read, so be it.
 
@@ -26,25 +26,25 @@ From there, you may enter a command. I encourage you to try it yourself, but if 
 
 From there, to start navigation, you may enter `nav` (not case sensitive).
 
-![A dark themed terminal window displaying the Transit API welcome screen. The primary subjects are a decorative header reading Welcome to the Transit API! centered near the top and a command prompt showing >>> with the user typing nav. The wider environment is a monospaced console with dashed borders framing the header. The visible text reads Welcome to the Transit API! and >>> nav. The tone is professional and inviting.](image-1.png)
+![A dark themed terminal window displaying the Transit API welcome screen. The primary subjects are a decorative header reading Welcome to the Transit API! centered near the top and a command prompt showing >>> with the user typing nav. The wider environment is a monospaced console with dashed borders framing the header. The visible text reads Welcome to the Transit API! and >>> nav. The tone is professional and inviting.](assets/image-1.png)
 
 Press enter.
 
 It will now prompt you to input a starting location. Do that. Here, we will start from Kitchener Central Station.
 
-![](image-2.png)
+![](assets/image-2.png)
 
 Pressing enter will convert the address to coordinates. You could have also inputed coordinates.
 
 From there, repeate the same steps for the second location. (In this case Union Station Toronto)
 
-![](image-3.png)
+![](assets/image-3.png)
 
-![](image-4.png)
+![](assets/image-4.png)
 
 From there, you will now see the entire route!
 
-![Terminal screenshot showing route directions and transit itinerary in a dark command line interface with walking instructions, a transit leg from Kitchener GO to Union Station GO, arrival time 22:36, total distance walked 0.708 km, and estimated duration about 1 hour 55 minutes](image-5.png)
+![Terminal screenshot showing route directions and transit itinerary in a dark command line interface with walking instructions, a transit leg from Kitchener GO to Union Station GO, arrival time 22:36, total distance walked 0.708 km, and estimated duration about 1 hour 55 minutes](assets/image-5.png)
 
 You can press enter to restart.
 
@@ -52,7 +52,7 @@ You can press enter to restart.
 
 There are also other commands you can use, and to get them run `help`.
 
-![](image-6.png)
+![](assets/image-6.png)
 
 ---
 
