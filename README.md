@@ -58,6 +58,18 @@ There are also other commands you can use, and to get them run `help`.
 
 Please note that on your first run it will download GTFS data for all agencies in `src/gtfs.py`, which may take a while. On every run in the beginning it will read the cache, which is faster, but with multiple agencies may take quite a while.
 
+### Dev Run
+
+Quite simple actually, just run:\
+`git clone https://github.com/roc-ket-cod-er/Python-Transit-API`
+`cd Python-Transit-API/src`
+
+install dependancies:\
+`pip install geopy urllib3 aioconsole aiohttp orjson`
+
+run file:\
+`python main.py`
+
 ## Development
 
 This has been quite a long project, as all this stuff has been new to me and is just such a difficult thing to have a bunch of different protocols all stuffed into your brain, and all swiriling togeather and you being unsure whatever you need to do.
