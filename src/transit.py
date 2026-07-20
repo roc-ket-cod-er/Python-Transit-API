@@ -1,4 +1,3 @@
-import json
 import gtfs
 import time
 import bisect
