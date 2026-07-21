@@ -85,3 +85,7 @@ Another thing to note is that this script absolutely ***eats*** ram. I recorded 
 ---
 
 I've always wanted to develop a router, and this will (at some point) actually work and be implemented for in my upcomming hardware project CWatch, and my current [Cpeedo](https://github.com/roc-ket-cod-er/Cpeedo-mk5).
+
+### AI
+
+There was some AI usage for this project, primarily for optimization.
