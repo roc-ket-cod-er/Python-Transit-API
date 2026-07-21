@@ -67,7 +67,7 @@ Quite simple actually, just run:\
 install dependancies:\
 `pip install geopy urllib3 aioconsole aiohttp orjson`
 
-run file:\
+run file:
 `python main.py`
 
 ## Development
